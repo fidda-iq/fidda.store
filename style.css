@@ -931,3 +931,207 @@ img{content-visibility:auto}
   .hero{min-height:calc(100svh - 78px);}
   .page-hero{padding-top:42px}
 }
+
+/* =========================================================
+   FIDDA — Universal Luxury Floating Header
+   نفس الترتيب في الهاتف والكمبيوتر: الشعار ← المتجر ← السلة ← القائمة
+   ========================================================= */
+.site-header#siteHeader{
+  position:fixed!important;
+  top:0!important;
+  left:0!important;
+  right:0!important;
+  width:100%!important;
+  height:auto!important;
+  padding:18px 0!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  z-index:1000!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.header-pill{
+  width:min(1180px,calc(100% - 48px));
+  height:76px;
+  margin:0 auto;
+  padding:0 18px 0 10px;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  direction:rtl;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:999px;
+  background:rgba(16,16,16,.82);
+  box-shadow:0 18px 45px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter:blur(18px) saturate(115%);
+  -webkit-backdrop-filter:blur(18px) saturate(115%);
+  transition:background .25s ease,box-shadow .25s ease,transform .25s ease;
+}
+.header-logo{
+  width:175px;
+  height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  transition:transform .2s ease;
+}
+.header-logo:active{transform:scale(.97)}
+.header-logo img{width:100%;height:100%;object-fit:contain;display:block}
+.header-tools{
+  display:flex;
+  align-items:center;
+  gap:2px;
+  direction:rtl;
+  flex:0 0 auto;
+}
+.header-icon,.header-menu{
+  position:relative;
+  width:56px;
+  height:56px;
+  display:grid;
+  place-items:center;
+  color:#f3f1ed;
+  background:transparent;
+  border:0;
+  border-radius:50%;
+  padding:0;
+  cursor:pointer;
+  transition:background .2s ease,transform .2s ease,color .2s ease;
+}
+.header-icon:hover,.header-menu:hover{background:rgba(255,255,255,.08)}
+.header-icon:active,.header-menu:active{transform:scale(.92)}
+.header-icon svg{
+  width:25px;
+  height:25px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.45;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.header-menu{
+  width:54px;
+  height:54px;
+  margin-right:2px;
+  flex-direction:column;
+  gap:5px;
+}
+.header-menu span{
+  width:21px;
+  height:1.7px;
+  border-radius:999px;
+  background:#f3f1ed;
+  transition:transform .25s ease,opacity .2s ease;
+}
+.header-menu[aria-expanded="true"] span:nth-child(1){transform:translateY(6.7px) rotate(45deg)}
+.header-menu[aria-expanded="true"] span:nth-child(2){opacity:0}
+.header-menu[aria-expanded="true"] span:nth-child(3){transform:translateY(-6.7px) rotate(-45deg)}
+.header-cart-count{
+  position:absolute;
+  top:7px;
+  right:7px;
+  min-width:18px;
+  height:18px;
+  padding:0 4px;
+  box-sizing:border-box;
+  border-radius:999px;
+  display:grid;
+  place-items:center;
+  background:#f3f1ed;
+  color:#111;
+  font-size:9px;
+  line-height:1;
+  font-weight:700;
+  box-shadow:0 2px 7px rgba(0,0,0,.25);
+}
+
+/* القائمة الجانبية تعمل على الهاتف والكمبيوتر */
+.mobile-drawer{
+  display:block!important;
+  position:fixed;
+  inset:0;
+  z-index:1100;
+  visibility:hidden;
+  pointer-events:none;
+}
+.mobile-drawer.open{visibility:visible;pointer-events:auto}
+.mobile-drawer-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.58);
+  opacity:0;
+  transition:opacity .28s ease;
+  backdrop-filter:blur(5px);
+  -webkit-backdrop-filter:blur(5px);
+}
+.mobile-drawer.open .mobile-drawer-backdrop{opacity:1}
+.mobile-drawer-panel{
+  position:absolute;
+  top:0;
+  left:0;
+  right:auto;
+  width:min(390px,88vw);
+  height:100%;
+  box-sizing:border-box;
+  background:linear-gradient(180deg,#151515,#0b0b0b);
+  color:#fff;
+  padding:30px 28px 22px;
+  transform:translateX(-105%);
+  transition:transform .34s cubic-bezier(.22,.8,.24,1);
+  box-shadow:20px 0 55px rgba(0,0,0,.28);
+  display:flex;
+  flex-direction:column;
+}
+.mobile-drawer.open .mobile-drawer-panel{transform:translateX(0)}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;gap:15px;padding-bottom:25px;border-bottom:1px solid rgba(255,255,255,.10)}
+.drawer-head img{width:150px;height:58px;object-fit:contain;display:block}
+.drawer-close{width:44px;height:44px;border:1px solid rgba(255,255,255,.14);border-radius:50%;background:rgba(255,255,255,.05);color:#fff;font-size:27px;font-weight:300;line-height:1;cursor:pointer}
+.drawer-nav{display:flex;flex-direction:column;margin-top:18px}
+.drawer-nav a{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid rgba(255,255,255,.08);color:#f7f7f5;font-size:17px;transition:.2s ease}
+.drawer-nav a:hover{padding-right:7px;background:rgba(255,255,255,.025)}
+.drawer-nav b{font-family:"Playfair Display",serif;font-size:11px;color:#777;font-weight:500;direction:ltr}
+.drawer-nav em{display:inline-grid;place-items:center;min-width:19px;height:19px;margin-right:5px;border-radius:50%;background:#fff;color:#111;font-size:9px;font-style:normal;vertical-align:middle}
+.drawer-footer{margin-top:auto;padding-top:20px;color:#777;font-size:9px;letter-spacing:3px;direction:ltr;text-align:center}
+
+/* إزالة أنماط الهيدر القديمة */
+.site-header .desktop-nav-wrap,.site-header .nav-links,.site-header .nav-actions,.site-header .brand,.mobile-header-inner{display:none!important}
+body{padding-top:0!important}
+.page-hero{padding-top:145px!important}
+.product-detail{padding-top:125px!important}
+.checkout-layout{padding-top:120px!important}
+
+@media(max-width:700px){
+  .site-header#siteHeader{padding:12px 0!important}
+  .header-pill{
+    width:calc(100% - 24px);
+    height:64px;
+    padding:0 8px 0 5px;
+    border-radius:999px;
+    background:rgba(14,14,14,.84);
+    box-shadow:0 14px 34px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .header-logo{width:132px;height:48px}
+  .header-tools{gap:0}
+  .header-icon{width:48px;height:52px}
+  .header-icon svg{width:23px;height:23px;stroke-width:1.5}
+  .header-menu{width:46px;height:50px;margin-right:0}
+  .header-menu span{width:19px;height:1.7px}
+  .header-cart-count{top:6px;right:3px;min-width:17px;height:17px;font-size:8px}
+  .mobile-drawer-panel{width:min(360px,88vw);padding:25px 22px 20px}
+  .drawer-head img{width:128px;height:52px}
+  .drawer-nav a{min-height:64px;font-size:16px}
+  .page-hero{padding-top:115px!important}
+  .product-detail{padding-top:105px!important}
+  .checkout-layout{padding-top:100px!important}
+}
+@media(max-width:380px){
+  .header-pill{width:calc(100% - 18px);height:60px}
+  .header-logo{width:118px;height:45px}
+  .header-icon{width:43px;height:49px}
+  .header-menu{width:42px;height:47px}
+  .header-menu span{width:18px}
+  .header-icon svg{width:21px;height:21px}
+}

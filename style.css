@@ -1341,3 +1341,76 @@ body{padding-top:0!important}
   .product-bottom strong{font-size:10px}
   .add-btn{width:31px;height:31px}
 }
+
+
+/* =========================================================
+   FIDDA — Final V5 Polish
+   هيدر أصغر قليلاً + خطوط متقاربة + حقيبة إضافة + سلة أكبر
+   ========================================================= */
+.header-menu{gap:3px!important}
+.header-menu span{width:20px!important;height:1.7px!important}
+.add-btn{display:grid!important;place-items:center!important;border-radius:50%!important;font-size:0!important}
+.add-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round;display:block}
+.add-btn:hover{background:#111!important;color:#fff!important;border-color:#111!important}
+.add-btn.disabled,.add-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* عناصر السلة على الكمبيوتر: صورة أوضح ومساحة أكثر */
+.cart-row{grid-template-columns:110px minmax(180px,1fr) auto auto auto;column-gap:20px;padding:18px 0}
+.cart-row .cart-product-link img{width:110px;height:110px;border-radius:4px}
+.cart-item-info h3{font-size:15px;line-height:1.7}
+.cart-item-price{font-size:12px!important}
+.cart-row-total{font-size:14px}
+.remove-btn{width:40px!important;height:40px!important}
+.remove-btn svg{width:21px!important;height:21px!important}
+
+@media(max-width:700px){
+  /* الهيدر أصغر قليلاً مع الحفاظ على وضوحه */
+  .header-pill{height:62px!important;min-height:62px!important;padding-inline:6px 4px!important}
+  .header-logo{width:134px!important;height:49px!important}
+  .header-icon{width:47px!important;height:50px!important}
+  .header-icon svg{width:23px!important;height:23px!important}
+  .header-menu{width:45px!important;height:49px!important;gap:3px!important}
+  .header-menu span{width:19px!important;height:1.7px!important}
+  .header-cart-count{top:4px!important;right:2px!important}
+
+  /* خطوط القائمة متقاربة وهادئة */
+  .drawer-nav a{min-height:66px!important}
+  .drawer-nav b{display:none!important}
+
+  /* زر إضافة المنتج: حقيبة صغيرة بدلاً من + */
+  .add-btn{width:35px!important;height:35px!important}
+  .add-btn svg{width:18px!important;height:18px!important}
+
+  /* السلة: المنتجات أكبر قليلاً وأكثر راحة */
+  .cart-row{
+    grid-template-columns:94px minmax(0,1fr) 36px!important;
+    grid-template-rows:auto auto;
+    grid-template-areas:"image info remove" "image qty total";
+    column-gap:13px!important;
+    row-gap:8px!important;
+    padding:16px 0!important;
+  }
+  .cart-product-link img{width:94px!important;height:94px!important;border-radius:5px!important}
+  .cart-item-info h3{font-size:13px!important;line-height:1.65!important}
+  .cart-item-price{font-size:11px!important}
+  .cart-remaining{font-size:9px!important;line-height:1.7}
+  .cart-row-total{font-size:11px!important}
+  .qty-control{height:35px!important}
+  .qty-control button{width:33px!important;height:33px!important}
+  .cart-qty{height:33px!important;font-size:12px!important}
+  .remove-btn{width:34px!important;height:34px!important;padding:6px!important}
+  .remove-btn svg{width:20px!important;height:20px!important}
+}
+
+@media(max-width:380px){
+  .header-pill{height:58px!important;min-height:58px!important}
+  .header-logo{width:124px!important;height:46px!important}
+  .header-icon{width:43px!important;height:47px!important}
+  .header-menu{width:42px!important;height:46px!important}
+  .header-menu span{width:18px!important}
+  .cart-row{grid-template-columns:88px minmax(0,1fr) 34px!important;column-gap:11px!important}
+  .cart-product-link img{width:88px!important;height:88px!important}
+  .cart-item-info h3{font-size:12px!important}
+  .add-btn{width:32px!important;height:32px!important}
+  .add-btn svg{width:17px!important;height:17px!important}
+}

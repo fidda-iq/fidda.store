@@ -8,7 +8,41 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="site-header"><div class="container nav-wrap"><a class="brand" href="index.html"><img src="logo.png" alt="فضة FIDDA"><small>إكسسوارات فضة بلمسة فاخرة</small></a><nav class="nav-links"><a href="index.html">الرئيسية</a><a href="products.html">المتجر</a><a href="index.html#about">عن فضة</a><a href="index.html#contact">تواصل معنا</a></nav><div class="nav-actions"><a class="cart-link" href="cart.html">السلة <span class="cart-count" id="cartCount">0</span></a></div></div></header>
+<header class="site-header mobile-fidda-header" id="siteHeader">
+  <div class="container nav-wrap desktop-nav-wrap">
+    <a class="brand" href="index.html"><img src="logo.png" alt="فضة FIDDA"><small>إكسسوارات فضة بلمسة فاخرة</small></a>
+    <nav class="nav-links"><a href="index.html">الرئيسية</a><a href="products.html">المتجر</a><a href="index.html#about">عن فضة</a><a href="index.html#contact">تواصل معنا</a></nav>
+    <div class="nav-actions"><a class="cart-link" href="cart.html">السلة <span class="cart-count" id="cartCount">0</span></a></div>
+  </div>
+  <div class="mobile-header-inner">
+    <div class="mobile-header-right">
+      <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="فتح القائمة" aria-expanded="false"><span></span><span></span><span></span></button>
+      <a class="mobile-logo-pill" href="index.html" aria-label="العودة إلى الصفحة الرئيسية"><img src="logo.png" alt="فضة FIDDA"></a>
+    </div>
+    <div class="mobile-header-left">
+      <a class="mobile-icon-link" href="products.html" aria-label="المتجر" title="المتجر"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h16l-1 10H5l-1-10Z"></path><path d="M7 9.5 8.5 5h7L17 9.5M9 12v2M12 12v2M15 12v2"></path></svg></a>
+      <a class="mobile-icon-link mobile-cart-link" href="cart.html" aria-label="السلة" title="السلة"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14l-1 12H6L5 7Z"></path><path d="M9 7a3 3 0 0 1 6 0"></path></svg><span class="mobile-cart-count" id="mobileCartCount">0</span></a>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-drawer" id="mobileDrawer" aria-hidden="true">
+  <div class="mobile-drawer-backdrop" id="mobileDrawerBackdrop"></div>
+  <aside class="mobile-drawer-panel" aria-label="القائمة الرئيسية">
+    <div class="drawer-head">
+      <img src="logo.png" alt="فضة FIDDA">
+      <button class="drawer-close" id="mobileDrawerClose" type="button" aria-label="إغلاق القائمة">×</button>
+    </div>
+    <nav class="drawer-nav">
+      <a href="index.html"><span>الرئيسية</span><b>01</b></a>
+      <a href="products.html"><span>المتجر</span><b>02</b></a>
+      <a href="index.html#about"><span>عن فضة</span><b>03</b></a>
+      <a href="index.html#contact"><span>تواصل معنا</span><b>04</b></a>
+      <a href="cart.html"><span>السلة <em class="drawer-cart-count">0</em></span><b>05</b></a>
+    </nav>
+    <div class="drawer-footer">FIDDA · SILVER JEWELRY</div>
+  </aside>
+</div>
 <main>
 <div class="container product-detail" id="productDetail"></div>
 <section class="section related-products-section" id="relatedProductsSection">

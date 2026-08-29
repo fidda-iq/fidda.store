@@ -1135,3 +1135,209 @@ body{padding-top:0!important}
   .header-menu span{width:18px}
   .header-icon svg{width:21px;height:21px}
 }
+
+/* =========================================================
+   FIDDA — Final Responsive Polish V4
+   تحسين نهائي للهاتف والكمبيوتر حسب معاينة المتجر
+   ========================================================= */
+
+/* العناوين العربية دائماً باتجاه بصري صحيح ومحاذاة يمين */
+.section-heading > div,
+.page-hero .container,
+.story .container > div:last-child,
+.footer,
+.cart-items,
+.cart-summary,
+.checkout-card,
+.order-summary,
+.detail-content{
+  text-align:right;
+}
+
+.section-heading > div{margin-inline-start:0}
+.section-heading h2,.story h2,.page-hero h1{direction:rtl;text-align:right}
+
+/* الهيدر على الكمبيوتر: شريط أفخم ومتوازن */
+.header-pill{
+  min-height:80px;
+  height:80px;
+  padding-inline:18px 12px;
+}
+.header-logo{width:190px;height:62px}
+.header-tools{gap:2px}
+.header-icon{width:58px;height:58px}
+.header-menu{width:56px;height:56px}
+.header-icon svg{width:26px;height:26px}
+
+/* لا يوجد تأثير hover غريب على عناوين الأقسام */
+.section-heading h2:hover{
+  color:inherit;
+  background:transparent;
+  padding:0;
+}
+
+@media (max-width:700px){
+  html,body{width:100%;max-width:100%;overflow-x:hidden}
+  body{background:#fafaf8}
+
+  /* الهيدر: نفس فكرة الصورة المرجعية، لكن أكبر وأكثر وضوحاً */
+  .site-header#siteHeader{
+    padding:10px 0!important;
+  }
+  .header-pill{
+    width:calc(100% - 24px);
+    height:68px;
+    min-height:68px;
+    padding:0 7px 0 5px;
+    border-radius:999px;
+    background:rgba(18,18,18,.91);
+    border:1px solid rgba(255,255,255,.15);
+    box-shadow:0 13px 34px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .header-logo{width:146px;height:54px}
+  .header-tools{gap:1px}
+  .header-icon{width:51px;height:55px}
+  .header-icon svg{width:25px;height:25px;stroke-width:1.45}
+  .header-menu{width:49px;height:53px;margin:0}
+  .header-menu span{width:22px;height:2px}
+  .header-cart-count{top:5px;right:3px;min-width:18px;height:18px;font-size:8px}
+
+  /* الهيدر ثابت فوق كل الصفحات، مع مساحة واضحة أسفله */
+  .page-hero{padding-top:128px!important}
+  .product-detail{padding-top:112px!important}
+  .checkout-layout{padding-top:106px!important}
+
+  /* عنوان المتجر/السلة: خلفية سوداء وليست رمادية */
+  .page-hero,
+  .page-hero.compact{
+    background:#080808!important;
+    color:#fff!important;
+    border-bottom:1px solid #1d1d1d!important;
+    padding-bottom:34px!important;
+  }
+  .page-hero h1{
+    color:#fff!important;
+    font-size:36px;
+    line-height:1.25;
+    text-align:right!important;
+    margin:0;
+  }
+  .page-hero p:last-child{
+    color:#bcbcbc!important;
+    font-size:11px;
+    text-align:right!important;
+  }
+  .page-hero .eyebrow{
+    color:#8e8e8e!important;
+    text-align:right!important;
+  }
+
+  /* جميع عناوين الأقسام في الهاتف إلى اليمين */
+  .section-heading{
+    width:100%;
+    align-items:flex-end!important;
+    justify-content:flex-start!important;
+    flex-direction:column!important;
+    gap:7px!important;
+    margin-bottom:25px!important;
+  }
+  .section-heading > div{
+    width:100%;
+    text-align:right!important;
+  }
+  .section-heading h2,
+  .story h2{
+    width:100%;
+    text-align:right!important;
+    font-size:32px;
+    line-height:1.3;
+  }
+  .section-heading .eyebrow{
+    text-align:right!important;
+    margin-bottom:5px;
+  }
+  .section-heading .text-link{
+    align-self:flex-start;
+    font-size:10px;
+  }
+
+  /* المساحات والحجم العام — لا يبدو الموقع مصغراً */
+  .container{width:calc(100% - 30px)!important}
+  .section{padding:50px 0!important}
+  .hero{min-height:calc(100svh - 88px);height:670px;max-height:none}
+  .hero-content{padding-bottom:52px}
+  .hero-logo{width:min(260px,68vw);max-height:145px}
+  .hero h1{font-size:38px}
+  .hero-text{font-size:12px;max-width:330px}
+
+  /* بطاقات التصنيفات */
+  .category-grid{gap:11px}
+  .category-card{min-height:205px;padding:16px;border-radius:4px}
+  .category-card h3{font-size:23px}
+  .category-card small{font-size:9px}
+
+  /* بطاقات المنتجات: أكبر وأسهل للقراءة واللمس */
+  .products-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .product-card{border-radius:4px}
+  .product-category{font-size:9px;padding:4px 8px}
+  .product-info{padding:12px 11px 11px}
+  .product-info h3{
+    font-size:12px;
+    line-height:1.65;
+    min-height:39px;
+    margin-bottom:8px;
+  }
+  .product-bottom strong{font-size:11px}
+  .add-btn{width:34px;height:34px;font-size:20px}
+  .stock-badge{font-size:8px!important}
+
+  /* صفحة المتجر: الفلاتر والبحث بحجم مريح */
+  .shop-toolbar{gap:13px;margin-bottom:25px}
+  .filters{gap:7px}
+  .filter-btn{height:39px;padding-inline:16px;font-size:10px}
+  .search-input{height:49px;font-size:15px;padding-inline:15px}
+
+  /* السلة والدفع — حجم أوضح */
+  .cart-row{grid-template-columns:78px minmax(0,1fr) 36px!important;column-gap:12px}
+  .cart-product-link img{width:78px;height:78px}
+  .cart-item-info h3{font-size:12px}
+  .cart-item-price{font-size:11px!important}
+  .cart-row-total{font-size:11px}
+  .qty-control{height:34px}
+  .qty-control button{width:32px;height:32px}
+  .cart-qty{height:32px;font-size:12px}
+  .cart-summary{padding:22px 17px}
+  .cart-summary h2,.order-summary h2{font-size:24px}
+  .summary-line,.summary-total{font-size:12px;padding:12px 0}
+  .checkout-card h1{font-size:31px}
+
+  /* القائمة الجانبية أكبر وأسهل للمس */
+  .mobile-drawer-panel{width:min(390px,90vw);padding:28px 23px 22px}
+  .drawer-head img{width:145px;height:58px}
+  .drawer-close{width:48px;height:48px;font-size:30px}
+  .drawer-nav{margin-top:20px}
+  .drawer-nav a{min-height:70px;font-size:18px}
+  .drawer-nav b{font-size:12px}
+  .drawer-nav em{min-width:21px;height:21px;font-size:10px}
+  .drawer-footer{font-size:9px}
+}
+
+@media (max-width:380px){
+  .header-pill{width:calc(100% - 18px);height:64px;min-height:64px}
+  .header-logo{width:132px;height:51px}
+  .header-icon{width:46px;height:52px}
+  .header-menu{width:44px;height:50px}
+  .header-icon svg{width:23px;height:23px}
+  .header-menu span{width:20px}
+  .page-hero h1{font-size:33px}
+  .section-heading h2,.story h2{font-size:29px}
+  .hero{height:630px;min-height:630px}
+  .hero-logo{width:230px}
+  .hero h1{font-size:34px}
+  .category-card{min-height:185px}
+  .category-card h3{font-size:21px}
+  .product-info{padding:10px 9px}
+  .product-info h3{font-size:11px}
+  .product-bottom strong{font-size:10px}
+  .add-btn{width:31px;height:31px}
+}

@@ -165,6 +165,14 @@ function renderCheckout(){
 }
 function normalizeIraqiPhone(v){return String(v||'').replace(/\D/g,'')}
 function isValidIraqiPhone(v){return /^07\d{9}$/.test(normalizeIraqiPhone(v))}
+async function notifyFiddaNewOrder(orderId){
+  if(!orderId)return;
+  try{
+    const endpoint=`${FIDDA_SUPABASE_URL}/functions/v1/notify-new-order`;
+    await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','apikey':FIDDA_SUPABASE_KEY,'Authorization':`Bearer ${FIDDA_SUPABASE_KEY}`},body:JSON.stringify({order_id:String(orderId)})});
+  }catch(e){console.warn('FIDDA push notification:',e)}
+}
+
 function setupCheckout(){
   const f=document.getElementById('checkoutForm');if(!f)return;const phone=f.elements.phone;
   if(phone){phone.inputMode='numeric';phone.maxLength=11;phone.pattern='07[0-9]{9}';phone.addEventListener('input',()=>{phone.value=phone.value.replace(/\D/g,'').slice(0,11);phone.setCustomValidity(isValidIraqiPhone(phone.value)?'':'أدخل رقم هاتف عراقي صحيح من 11 رقمًا يبدأ بـ 07')})}
@@ -181,6 +189,7 @@ function setupCheckout(){
     // إنقاص المخزون يتم فقط داخل create_order عند تثبيت الطلب بنجاح.
     try{
       const result=await dbCreateOrder(customer,items,t.subtotal,t.delivery,t.total);
+      notifyFiddaNewOrder(result.id);
       localStorage.removeItem(CART_KEY);updateCartCount();f.classList.add('hidden');const success=document.getElementById('orderSuccess');success.classList.remove('hidden');success.innerHTML=`<div class="success-icon">✓</div><p class="eyebrow">ORDER CONFIRMED</p><h2>تم استلام طلبك بنجاح</h2><p>رقم الطلب: <b>${escapeHtml(result.id)}</b></p><p>الإجمالي: <b>${formatPrice(t.total)}</b> شامل التوصيل.</p><p>سنتواصل معك لتأكيد الطلب وتجهيزه.</p>`;const modal=document.getElementById('orderSuccessModal');const details=document.getElementById('successDetails');if(modal&&details){details.className='success-details';details.innerHTML=`<div class="detail-row"><span>رقم الطلب</span><b>${escapeHtml(result.id)}</b></div><div class="detail-row"><span>الإجمالي</span><b>${formatPrice(t.total)} شامل التوصيل</b></div>`;modal.classList.remove('hidden');document.body.style.overflow='hidden';}refreshStoreData().catch(e=>console.error('Background store refresh:',e));
     }catch(err){
       console.error(err);

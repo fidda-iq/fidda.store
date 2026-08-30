@@ -6,6 +6,68 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+
+<style id="fidda-final-ui-fixes">
+/* حالة التوفر — مستطيل أنيق بحواف دائرية */
+.availability-badge,
+.stock-badge,
+.product-availability,
+.status-badge,
+.available-badge,
+.unavailable-badge {
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  min-width:78px;
+  padding:5px 12px !important;
+  border-radius:999px !important;
+  border:1px solid currentColor !important;
+  background:transparent !important;
+  font-weight:700 !important;
+  line-height:1.2;
+  text-align:center;
+}
+.available-badge,
+.availability-badge.available,
+.stock-badge.available,
+.product-availability.available {
+  color:#35b86b !important;
+}
+.unavailable-badge,
+.availability-badge.unavailable,
+.stock-badge.unavailable,
+.product-availability.unavailable {
+  color:#e24b4b !important;
+}
+
+/* الأقسام الفارغة */
+.empty-section-message,
+.coming-soon-message,
+.empty-category-message {
+  width:100%;
+  min-height:260px;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+  margin:0 auto;
+  padding:40px 20px;
+  box-sizing:border-box;
+  font-size:clamp(22px, 3vw, 32px);
+  font-weight:700;
+  letter-spacing:.2px;
+}
+@media (max-width:600px){
+  .empty-section-message,
+  .coming-soon-message,
+  .empty-category-message {
+    min-height:220px;
+    font-size:23px;
+    padding:30px 16px;
+  }
+}
+</style>
+
 </head>
 <body>
 <header class="site-header" id="siteHeader">

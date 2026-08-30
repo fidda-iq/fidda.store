@@ -1414,3 +1414,73 @@ body{padding-top:0!important}
   .add-btn{width:32px!important;height:32px!important}
   .add-btn svg{width:17px!important;height:17px!important}
 }
+
+
+/* =========================================================
+   FIDDA — V6 Final Home + Header Polish
+   ========================================================= */
+.header-pill{
+  height:72px!important;
+  min-height:72px!important;
+  padding-inline:16px 10px!important;
+}
+.header-logo{width:172px!important;height:56px!important}
+.header-tools{gap:0!important}
+.header-menu{width:52px!important;height:52px!important;gap:3.5px!important}
+.header-menu span{width:19px!important;height:1.7px!important}
+.header-menu[aria-expanded="true"] span:nth-child(1){transform:translateY(5.2px) rotate(45deg)!important}
+.header-menu[aria-expanded="true"] span:nth-child(3){transform:translateY(-5.2px) rotate(-45deg)!important}
+
+/* الصفحة الرئيسية: الشعار موجود في الهيدر فقط */
+.home-page .hero-logo{display:none!important}
+.hero{min-height:620px!important;height:620px!important}
+.hero-content{justify-content:center!important;padding:80px 0 55px!important}
+.hero-copy{margin-top:0!important}
+.hero h1{margin-bottom:16px!important}
+
+@media(max-width:700px){
+  .header-pill{
+    width:calc(100% - 28px)!important;
+    height:62px!important;
+    min-height:62px!important;
+    padding:0 7px 0 5px!important;
+  }
+  .header-logo{width:136px!important;height:49px!important}
+  .header-icon{width:47px!important;height:51px!important}
+  .header-icon svg{width:23px!important;height:23px!important}
+  .header-menu{width:45px!important;height:49px!important;gap:3px!important}
+  .header-menu span{width:18px!important;height:1.7px!important}
+  .header-menu[aria-expanded="true"] span:nth-child(1){transform:translateY(4.7px) rotate(45deg)!important}
+  .header-menu[aria-expanded="true"] span:nth-child(3){transform:translateY(-4.7px) rotate(-45deg)!important}
+
+  .hero{
+    min-height:560px!important;
+    height:560px!important;
+    max-height:none!important;
+    background-position:center center!important;
+  }
+  .hero-content{
+    min-height:0!important;
+    height:auto!important;
+    justify-content:center!important;
+    padding:74px 0 48px!important;
+  }
+  .hero-copy{width:100%!important;padding:0 10px!important}
+  .hero .eyebrow{font-size:7px!important;margin-bottom:9px!important}
+  .hero h1{font-size:37px!important;line-height:1.24!important;margin-bottom:14px!important}
+  .hero h1 span{font-size:.76em!important}
+  .hero-text{font-size:12px!important;line-height:1.9!important;max-width:315px!important;margin-bottom:20px!important}
+  .hero .btn{width:min(205px,76vw)!important;height:47px!important}
+}
+
+@media(max-width:380px){
+  .header-pill{width:calc(100% - 20px)!important;height:59px!important;min-height:59px!important}
+  .header-logo{width:126px!important;height:46px!important}
+  .header-icon{width:43px!important;height:48px!important}
+  .header-menu{width:42px!important;height:46px!important;gap:2.7px!important}
+  .header-menu span{width:17px!important}
+  .hero{min-height:540px!important;height:540px!important}
+  .hero-content{padding-top:68px!important}
+  .hero h1{font-size:34px!important}
+  .hero-text{font-size:11px!important;max-width:285px!important}
+}

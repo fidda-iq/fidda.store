@@ -88,7 +88,7 @@ body{overflow-x:hidden}
 .category-card h3{transition:color .35s ease,text-shadow .35s ease,transform .35s ease}.category-card:hover h3{color:#fff;text-shadow:0 0 10px rgba(255,255,255,.85),0 0 22px rgba(255,255,255,.25);transform:translateY(-2px)}
 
 /* ===== إصلاحات الواجهة الجديدة ===== */
-.nav-links a:hover,.nav-links a[href*="#contact"]:hover{color:#fff!important;background:#111;padding:8px 12px}
+.nav-links a:hover{color:inherit!important;background:transparent!important;padding:7px 0!important}
 .section-heading h2:hover{color:#fff;background:#111;padding:6px 14px;transition:.2s}
 .cart-row{transition:none!important}
 .remove-btn{width:30px!important;height:30px!important;border:0!important;background:transparent!important;padding:5px!important;display:grid!important;place-items:center!important;color:#777!important;filter:none!important}
@@ -1838,4 +1838,44 @@ body{padding-top:0!important}
   .search-input{width:100%!important;min-height:46px!important}
   .fidda-coming-soon{font-size:22px!important;color:rgba(21,21,21,.34)!important}
   .dark-section .fidda-coming-soon{color:rgba(255,255,255,.29)!important}
+}
+
+/* ===== FIDDA — Contact area and drawer interaction polish ===== */
+.drawer-nav{width:100%;}
+.drawer-nav a{
+  width:100%!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  padding:0 2px!important;
+  background:transparent!important;
+  border-radius:0!important;
+  color:#f7f7f5!important;
+  -webkit-tap-highlight-color:transparent;
+}
+.drawer-nav a:hover,.drawer-nav a:focus-visible,.drawer-nav a:active{
+  background:rgba(255,255,255,.055)!important;
+  color:#fff!important;
+  padding-right:9px!important;
+  outline:none!important;
+}
+.drawer-nav a span{
+  display:flex!important;
+  align-items:center!important;
+  width:100%!important;
+  min-height:64px!important;
+}
+.footer-help,.footer-store,.footer-instagram{
+  background:transparent!important;
+}
+.footer-help a,.footer-store a,.footer-instagram a{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.footer-help a:hover,.footer-help a:focus-visible,.footer-store a:hover,.footer-store a:focus-visible,.footer-instagram a:hover,.footer-instagram a:focus-visible{
+  background:transparent!important;
+  color:#fff!important;
+  outline:none;
+}
+@media(max-width:700px){
+  .drawer-nav a span{min-height:62px!important;}
 }

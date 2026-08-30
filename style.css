@@ -1559,3 +1559,27 @@ body{padding-top:0!important}
   .home-page .hero h1{font-size:38px!important}
   .home-page .hero-text{font-size:12px!important;max-width:300px!important}
 }
+
+/* V8 — Featured products silver/gray gradient treatment */
+.dark-section:has(#featuredProducts){
+  background:linear-gradient(135deg,#bfc2c4 0%,#777b7e 48%,#4b4e51 100%) !important;
+  color:#fff;
+}
+.dark-section:has(#featuredProducts) .eyebrow,
+.dark-section:has(#featuredProducts) .section-heading h2,
+.dark-section:has(#featuredProducts) .text-link{color:#fff !important;}
+.dark-section:has(#featuredProducts) .text-link{border-color:rgba(255,255,255,.65);}
+.dark-section:has(#featuredProducts) .product-card{
+  background:#171717 !important;
+  border-color:rgba(255,255,255,.16) !important;
+}
+.dark-section:has(#featuredProducts) .product-info h3,
+.dark-section:has(#featuredProducts) .product-info strong{color:#fff !important;}
+.dark-section:has(#featuredProducts) .product-category{background:rgba(255,255,255,.94);color:#111;}
+.dark-section:has(#featuredProducts) .add-btn{color:#fff;border-color:#555;}
+
+@media(max-width:560px){
+  .dark-section:has(#featuredProducts){
+    background:linear-gradient(160deg,#c4c7c9 0%,#85898c 42%,#4e5154 100%) !important;
+  }
+}

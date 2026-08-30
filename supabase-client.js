@@ -102,9 +102,41 @@ let fiddaProductsRealtimeStatus='DISCONNECTED';
 let fiddaOrdersRealtimeStatus='DISCONNECTED';
 let fiddaRealtimeReconnectTimer=null;
 let fiddaRealtimeFallbackTimer=null;
+let fiddaLiveBroadcastChannel=null;
+let fiddaLiveBroadcastStatus='DISCONNECTED';
+const FIDDA_LIVE_BROADCAST_CHANNEL='fidda-live-broadcast-v1';
 
 function emitFiddaRealtimeStatus(table,status){
   window.dispatchEvent(new CustomEvent('fidda-realtime-status',{detail:{table,status}}));
+}
+
+function dispatchFiddaLiveBroadcast(message){
+  if(!message||!message.type)return;
+  window.dispatchEvent(new CustomEvent('fidda-live-broadcast',{detail:message}));
+  // نفس الجهاز لا يحتاج BroadcastChannel، لكن الأحداث المحلية تستفيد من نفس المسار.
+}
+function startFiddaLiveBroadcast(){
+  if(!fiddaSupabase||fiddaLiveBroadcastChannel)return;
+  const channel=fiddaSupabase.channel(FIDDA_LIVE_BROADCAST_CHANNEL,{config:{broadcast:{ack:false,self:false}}});
+  fiddaLiveBroadcastChannel=channel;
+  channel
+    .on('broadcast',{event:'change'},({payload})=>dispatchFiddaLiveBroadcast(payload||{}))
+    .subscribe(status=>{
+      fiddaLiveBroadcastStatus=status;
+      emitFiddaRealtimeStatus('broadcast',status);
+      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
+        if(fiddaLiveBroadcastChannel===channel)fiddaLiveBroadcastChannel=null;
+        setTimeout(startFiddaLiveBroadcast,700);
+      }
+    });
+}
+function broadcastFiddaLiveChange(payload){
+  if(!payload||!fiddaSupabase)return;
+  const message={...payload,sourceId:window.__fiddaLiveSourceId||(window.__fiddaLiveSourceId=Math.random().toString(36).slice(2)+Date.now())};
+  dispatchFiddaLiveBroadcast(message);
+  if(fiddaLiveBroadcastChannel&&fiddaLiveBroadcastStatus==='SUBSCRIBED'){
+    fiddaLiveBroadcastChannel.send({type:'broadcast',event:'change',payload:message}).catch(()=>{});
+  }
 }
 
 function stopFiddaOrdersRealtime(){
@@ -155,6 +187,7 @@ function scheduleFiddaRealtimeReconnect(){
 
 function startFiddaRealtime(){
   if(!fiddaSupabase)return;
+  startFiddaLiveBroadcast();
 
   // قناة المنتجات والأقسام: تعمل في المتجر والإدارة معًا.
   if(!fiddaProductsChannel){
@@ -226,11 +259,31 @@ async function dbSaveProduct(product){
   const row=productToRow(product);
   const {data,error}=await db.from('products').upsert(row,{onConflict:'id'}).select('*').single();
   if(error) throw error;
-  return rowToProduct(data);
+  const saved=rowToProduct(data);
+  broadcastFiddaLiveChange({type:'products',eventType:'UPDATE',new:data,at:Date.now()});
+  return saved;
 }
-async function dbDeleteProduct(id){const db=await ensureFiddaSupabase();const {error}=await db.from('products').delete().eq('id',id);if(error)throw error}
-async function dbSaveCategory(category){const db=await ensureFiddaSupabase();const row=categoryToRow(category);const {data,error}=await db.from('categories').upsert(row,{onConflict:'id'}).select('*').single();if(error)throw error;return rowToCategory(data)}
-async function dbDeleteCategory(id){const db=await ensureFiddaSupabase();const {error}=await db.from('categories').delete().eq('id',id);if(error)throw error}
+async function dbDeleteProduct(id){
+  const db=await ensureFiddaSupabase();
+  const {error}=await db.from('products').delete().eq('id',id);
+  if(error)throw error;
+  broadcastFiddaLiveChange({type:'products',eventType:'DELETE',old:{id:Number(id)},at:Date.now()});
+}
+async function dbSaveCategory(category){
+  const db=await ensureFiddaSupabase();
+  const row=categoryToRow(category);
+  const {data,error}=await db.from('categories').upsert(row,{onConflict:'id'}).select('*').single();
+  if(error)throw error;
+  const saved=rowToCategory(data);
+  broadcastFiddaLiveChange({type:'categories',eventType:'UPDATE',new:data,at:Date.now()});
+  return saved;
+}
+async function dbDeleteCategory(id){
+  const db=await ensureFiddaSupabase();
+  const {error}=await db.from('categories').delete().eq('id',id);
+  if(error)throw error;
+  broadcastFiddaLiveChange({type:'categories',eventType:'DELETE',old:{id:String(id)},at:Date.now()});
+}
 async function dbGetOrders(){
   const db=await ensureFiddaSupabase();
   const {data,error}=await db.from('orders').select('id,customer,items,subtotal,delivery,total,status,created_at,updated_at,status_history').order('created_at',{ascending:false}).limit(1000);
@@ -241,24 +294,40 @@ async function dbUpdateOrderStatus(id,status){
   const db=await ensureFiddaSupabase();
   const {data,error}=await db.rpc('set_order_status',{p_id:id,p_status:status});
   if(error)throw error;
+  try{
+    const {data:row}=await db.from('orders').select('id,customer,items,subtotal,delivery,total,status,created_at,updated_at,status_history').eq('id',id).single();
+    if(row)broadcastFiddaLiveChange({type:'orders',eventType:'UPDATE',new:row,at:Date.now()});
+  }catch(e){}
   return data;
 }
 async function dbUpdateOrder(id,customer,subtotal,delivery,total,status){
   const db=await ensureFiddaSupabase();
   const {data,error}=await db.rpc('update_order',{p_id:id,p_customer:customer,p_subtotal:subtotal,p_delivery:delivery,p_total:total,p_status:status});
   if(error)throw error;
+  try{
+    const {data:row}=await db.from('orders').select('id,customer,items,subtotal,delivery,total,status,created_at,updated_at,status_history').eq('id',id).single();
+    if(row)broadcastFiddaLiveChange({type:'orders',eventType:'UPDATE',new:row,at:Date.now()});
+  }catch(e){}
   return data;
 }
 async function dbDeleteOrder(id){
   const db=await ensureFiddaSupabase();
   const {data,error}=await db.rpc('delete_order',{p_id:id});
   if(error)throw error;
+  broadcastFiddaLiveChange({type:'orders',eventType:'DELETE',old:{id},at:Date.now()});
   return data||{id};
 }
 async function dbCreateOrder(customer,items,subtotal,delivery,total){
   const db=await ensureFiddaSupabase();
   const {data,error}=await db.rpc('create_order',{p_customer:customer,p_items:items,p_subtotal:subtotal,p_delivery:delivery,p_total:total});
   if(error)throw error;
+  try{
+    const orderId=(data&&typeof data==='object'&&data.id)||data;
+    if(orderId){
+      const {data:row}=await db.from('orders').select('id,customer,items,subtotal,delivery,total,status,created_at,updated_at,status_history').eq('id',orderId).single();
+      if(row)broadcastFiddaLiveChange({type:'orders',eventType:'INSERT',new:row,at:Date.now()});
+    }
+  }catch(e){}
   return data;
 }
 

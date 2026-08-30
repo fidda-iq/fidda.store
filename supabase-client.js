@@ -11,7 +11,7 @@ async function ensureFiddaSupabase(){
   if (window.supabase?.createClient) { fiddaSupabase=window.supabase.createClient(FIDDA_SUPABASE_URL,FIDDA_SUPABASE_KEY); window.fiddaSupabase=fiddaSupabase; startFiddaRealtime(); return fiddaSupabase; }
   if (!fiddaClientPromise) fiddaClientPromise=new Promise((resolve,reject)=>{
     const urls=['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2','https://unpkg.com/@supabase/supabase-js@2'];
-    let i=0; const load=()=>{ if(i>=urls.length)return reject(new Error('تعذر تحميل مكتبة Supabase.')); const sc=document.createElement('script'); sc.src=urls[i++]; sc.onload=()=>window.supabase?.createClient?resolve():load(); sc.onerror=load; document.head.appendChild(sc); }; load();
+    let i=0; const load=()=>{ if(i>=urls.length)return reject(new Error('تعذر تحميل مكتبة Supabase')); const sc=document.createElement('script'); sc.src=urls[i++]; sc.onload=()=>window.supabase?.createClient?resolve():load(); sc.onerror=load; document.head.appendChild(sc); }; load();
   });
   await fiddaClientPromise; fiddaSupabase=window.supabase.createClient(FIDDA_SUPABASE_URL,FIDDA_SUPABASE_KEY); window.fiddaSupabase=fiddaSupabase; startFiddaRealtime(); return fiddaSupabase;
 }

@@ -9,10 +9,10 @@ const DEFAULT_CATEGORIES = [
   {id:'earrings',name:'أقراط',image:'https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&w=900&q=80'}
 ];
 const DEFAULT_PRODUCTS = [
-  {id:1,name:'خاتم فضي كلاسيكي',category:'خواتم',price:35000,desc:'خاتم فضة بتصميم ناعم وأنيق للاستخدام اليومي.',material:'فضة',payment:'الدفع عند الاستلام',images:[DEFAULT_CATEGORIES[0].image],stock:5,featured:true},
-  {id:2,name:'سلسلة فضة ناعمة',category:'سلاسل',price:42000,desc:'سلسلة فضية رقيقة تضيف لمسة راقية لإطلالتك.',material:'فضة',payment:'الدفع عند الاستلام',images:[DEFAULT_CATEGORIES[1].image],stock:4,featured:true},
-  {id:3,name:'سوار فضة أنيق',category:'أساور',price:39000,desc:'سوار فضة بتفاصيل بسيطة وحضور فاخر.',material:'فضة',payment:'الدفع عند الاستلام',images:[DEFAULT_CATEGORIES[2].image],stock:3,featured:true},
-  {id:4,name:'أقراط فضية ناعمة',category:'أقراط',price:28000,desc:'أقراط خفيفة بتصميم عصري.',material:'فضة',payment:'الدفع عند الاستلام',images:[DEFAULT_CATEGORIES[3].image],stock:2,featured:false}
+  {id:1,name:'خاتم فضي كلاسيكي',category:'خواتم',price:35000,desc:'خاتم فضة بتصميم ناعم وأنيق للاستخدام اليومي',material:'فضة',payment:'الدفع عند الاستلام',images:[DEFAULT_CATEGORIES[0].image],stock:5,featured:true},
+  {id:2,name:'سلسلة فضة ناعمة',category:'سلاسل',price:42000,desc:'سلسلة فضية رقيقة تضيف لمسة راقية لإطلالتك',material:'فضة',payment:'الدفع عند الاستلام',images:[DEFAULT_CATEGORIES[1].image],stock:4,featured:true},
+  {id:3,name:'سوار فضة أنيق',category:'أساور',price:39000,desc:'سوار فضة بتفاصيل بسيطة وحضور فاخر',material:'فضة',payment:'الدفع عند الاستلام',images:[DEFAULT_CATEGORIES[2].image],stock:3,featured:true},
+  {id:4,name:'أقراط فضية ناعمة',category:'أقراط',price:28000,desc:'أقراط خفيفة بتصميم عصري',material:'فضة',payment:'الدفع عند الاستلام',images:[DEFAULT_CATEGORIES[3].image],stock:2,featured:false}
 ];
 
 function normalizeProduct(p){
@@ -173,7 +173,7 @@ function setupCheckout(){
     if(!f.reportValidity())return;
     if(!window.FIDDA_DB_READY){showToast('جارٍ الاتصال بالمتجر، حاول بعد لحظات','error');return}
     const cart=getCart(),products=getProducts();if(!cart.length){location.replace('cart.html');return}
-    for(const item of cart){const p=products.find(x=>Number(x.id)===Number(item.id));if(!p||p.stock<Number(item.qty)){showToast(p?`لم تعد الكمية المطلوبة من ${p.name} متوفرة.`:'إحدى القطع لم تعد متوفرة.','error');await refreshStoreData();renderCheckout();return}}
+    for(const item of cart){const p=products.find(x=>Number(x.id)===Number(item.id));if(!p||p.stock<Number(item.qty)){showToast(p?`لم تعد الكمية المطلوبة من ${p.name} متوفرة`:'إحدى القطع لم تعد متوفرة','error');await refreshStoreData();renderCheckout();return}}
     const customer=Object.fromEntries(new FormData(f).entries());customer.phone=normalizeIraqiPhone(customer.phone);const t=cartTotals();
     const items=cart.map(i=>{const p=products.find(x=>Number(x.id)===Number(i.id));return{id:Number(p.id),qty:Number(i.qty),name:p.name,price:Number(p.price),image:productImages(p)[0]||'',category:p.category,material:p.material||'فضة'}});
     const button=f.querySelector('button[type="submit"]');if(button){button.disabled=true;button.dataset.original=button.textContent;button.textContent='جارٍ تأكيد الطلب...'}
@@ -185,7 +185,7 @@ function setupCheckout(){
     }catch(err){
       console.error(err);
       // لم يتم تثبيت الطلب، لذلك لا نلمس المخزون المحلي إطلاقًا.
-      showToast(String(err?.message||'').includes('غير متوفرة')?'الكمية لم تعد متوفرة. حدّث السلة وحاول مرة أخرى.':'تعذر إرسال الطلب. حاول مرة أخرى.','error');
+      showToast(String(err?.message||'').includes('غير متوفرة')?'الكمية لم تعد متوفرة حدّث السلة وحاول مرة أخرى':'تعذر إرسال الطلب. حاول مرة أخرى','error');
       if(button){button.disabled=false;button.textContent=button.dataset.original||'تأكيد الطلب'}
     }
   })

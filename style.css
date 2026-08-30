@@ -1698,3 +1698,44 @@ body{padding-top:0!important}
     padding:35px 16px!important;
   }
 }
+
+
+/* ===== Final header refinement: minimal compact menu + elegant arrow ===== */
+.header-menu{
+  width:40px!important;
+  height:40px!important;
+  padding:0!important;
+  gap:2px!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.header-menu span{
+  display:block!important;
+  width:17px!important;
+  height:1.4px!important;
+  margin:0!important;
+  border-radius:2px!important;
+  background:currentColor!important;
+  transform-origin:center!important;
+  transition:transform .22s ease, opacity .18s ease, width .22s ease!important;
+}
+.header-menu:hover{background:transparent!important}
+.header-menu[aria-expanded="true"]{gap:0!important}
+/* عند فتح القائمة تتحول الخطوط الثلاثة إلى سهم رفيع وأنيق بدل X */
+.header-menu[aria-expanded="true"] span:nth-child(1){
+  width:13px!important;
+  transform:translateY(2.4px) rotate(35deg)!important;
+}
+.header-menu[aria-expanded="true"] span:nth-child(2){
+  opacity:0!important;
+  width:0!important;
+}
+.header-menu[aria-expanded="true"] span:nth-child(3){
+  width:13px!important;
+  transform:translateY(-2.4px) rotate(-35deg)!important;
+}

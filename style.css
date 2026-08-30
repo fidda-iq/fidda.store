@@ -1739,3 +1739,103 @@ body{padding-top:0!important}
   width:13px!important;
   transform:translateY(-2.4px) rotate(-35deg)!important;
 }
+
+/* ===== FIDDA — Minimal luxury menu + refined search ===== */
+/* ثلاث نقاط بدل الخطوط الثلاثة */
+.header-menu{
+  width:40px!important;
+  height:40px!important;
+  gap:4px!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.header-menu span{
+  width:4px!important;
+  height:4px!important;
+  min-width:4px!important;
+  min-height:4px!important;
+  margin:0!important;
+  border-radius:50%!important;
+  background:currentColor!important;
+  transform:none!important;
+  transition:transform .24s ease,opacity .2s ease!important;
+}
+.header-menu:hover{background:transparent!important}
+.header-menu:focus-visible{outline:1px solid rgba(255,255,255,.35);outline-offset:3px;border-radius:50%}
+/* عند الفتح تبقى النقاط هادئة ولا تتحول إلى X */
+.header-menu[aria-expanded="true"]{gap:4px!important}
+.header-menu[aria-expanded="true"] span{transform:none!important;opacity:1!important}
+
+/* زر إغلاق القائمة: سهم بسيط وفخم */
+.drawer-close{
+  width:44px!important;
+  height:44px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  color:#fff!important;
+  display:grid!important;
+  place-items:center!important;
+  cursor:pointer!important;
+  transition:background .22s ease,color .22s ease,transform .22s ease!important;
+}
+.drawer-close svg{
+  width:23px!important;
+  height:23px!important;
+  fill:none!important;
+  stroke:currentColor!important;
+  stroke-width:1.35!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+  display:block!important;
+  transition:transform .22s ease!important;
+}
+.drawer-close:hover{background:rgba(255,255,255,.07)!important;transform:translateX(-2px)!important}
+.drawer-close:active{transform:translateX(-2px) scale(.94)!important}
+.drawer-close:focus-visible{outline:1px solid rgba(255,255,255,.45);outline-offset:3px}
+
+/* حقل البحث: أسود شفاف، ناعم وفخم */
+.search-input{
+  width:250px!important;
+  min-height:46px!important;
+  padding:10px 17px!important;
+  border:1px solid rgba(255,255,255,.13)!important;
+  border-radius:999px!important;
+  background:rgba(0,0,0,.68)!important;
+  color:#fff!important;
+  outline:none!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.08)!important;
+  backdrop-filter:blur(8px)!important;
+  -webkit-backdrop-filter:blur(8px)!important;
+  transition:border-color .22s ease,background .22s ease,box-shadow .22s ease!important;
+}
+.search-input::placeholder{color:rgba(255,255,255,.62)!important}
+.search-input:focus{
+  background:rgba(0,0,0,.78)!important;
+  border-color:rgba(255,255,255,.3)!important;
+  box-shadow:0 10px 30px rgba(0,0,0,.14)!important;
+}
+
+/* كلمة قريباً: خفيفة وراقية */
+.fidda-coming-soon{
+  color:rgba(21,21,21,.38)!important;
+  font-weight:500!important;
+  letter-spacing:.5px!important;
+  font-size:clamp(22px,2.6vw,30px)!important;
+}
+.dark-section .fidda-coming-soon{color:rgba(255,255,255,.32)!important}
+@media(max-width:700px){
+  .header-menu{width:40px!important;height:42px!important;gap:3.5px!important}
+  .header-menu span{width:3.5px!important;height:3.5px!important;min-width:3.5px!important;min-height:3.5px!important}
+  .drawer-close{width:42px!important;height:42px!important}
+  .drawer-close svg{width:22px!important;height:22px!important}
+  .search-input{width:100%!important;min-height:46px!important}
+  .fidda-coming-soon{font-size:22px!important;color:rgba(21,21,21,.34)!important}
+  .dark-section .fidda-coming-soon{color:rgba(255,255,255,.29)!important}
+}

@@ -1616,3 +1616,84 @@ body{padding-top:0!important}
   .dark-section .product-card{background:linear-gradient(145deg,rgba(52,52,52,.97),rgba(100,100,100,.95))}
   .dark-section .product-info h3{font-size:11px;line-height:1.55;min-height:34px;color:#fff}
 }
+
+
+/* ===== FIDDA final availability + empty sections ===== */
+/* لا نقاط بجانب حالة التوفر */
+.stock-dot{display:none!important}
+
+/* المتجر: المستطيل ملون والنص ملون، والخلفية العامة تبقى بيضاء */
+.products-grid:not(.featured-grid) .stock-badge{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:max-content!important;
+  min-width:82px!important;
+  padding:5px 12px!important;
+  border-radius:999px!important;
+  border:1px solid currentColor!important;
+  font-weight:700!important;
+  line-height:1.25!important;
+  background:#fff!important;
+}
+.products-grid:not(.featured-grid) .stock-badge.available{
+  color:#1f9d55!important;
+  background:#eaf8ef!important;
+}
+.products-grid:not(.featured-grid) .stock-badge.unavailable{
+  color:#d64545!important;
+  background:#fff0f0!important;
+}
+
+/* الأكثر اختياراً: المستطيل فقط بإطار، بلا تعبئة؛ اللون للنص فقط */
+.dark-section .featured-grid .stock-badge,
+.featured-grid .stock-badge{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:max-content!important;
+  min-width:82px!important;
+  padding:5px 12px!important;
+  border-radius:999px!important;
+  border:1px solid currentColor!important;
+  font-weight:700!important;
+  line-height:1.25!important;
+  background:transparent!important;
+}
+.dark-section .featured-grid .stock-badge.available,
+.featured-grid .stock-badge.available{
+  color:#35b86b!important;
+  background:transparent!important;
+  border-color:#35b86b!important;
+}
+.dark-section .featured-grid .stock-badge.unavailable,
+.featured-grid .stock-badge.unavailable{
+  color:#ef6262!important;
+  background:transparent!important;
+  border-color:#ef6262!important;
+}
+
+/* الأقسام التي لا تحتوي منتجات */
+.fidda-coming-soon{
+  grid-column:1/-1!important;
+  width:100%!important;
+  min-height:280px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  box-sizing:border-box!important;
+  padding:40px 20px!important;
+  margin:0!important;
+  font-size:clamp(24px,3vw,34px)!important;
+  font-weight:700!important;
+  color:inherit!important;
+  letter-spacing:.2px!important;
+}
+@media(max-width:600px){
+  .fidda-coming-soon{
+    min-height:230px!important;
+    font-size:24px!important;
+    padding:35px 16px!important;
+  }
+}

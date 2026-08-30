@@ -1658,18 +1658,18 @@ body{padding-top:0!important}
   border:1px solid currentColor!important;
   font-weight:700!important;
   line-height:1.25!important;
-  background:transparent!important;
+  background:#fff!important;
 }
 .dark-section .featured-grid .stock-badge.available,
 .featured-grid .stock-badge.available{
   color:#35b86b!important;
-  background:transparent!important;
+  background:#fff!important;
   border-color:#35b86b!important;
 }
 .dark-section .featured-grid .stock-badge.unavailable,
 .featured-grid .stock-badge.unavailable{
   color:#ef6262!important;
-  background:transparent!important;
+  background:#fff!important;
   border-color:#ef6262!important;
 }
 
@@ -1682,6 +1682,7 @@ body{padding-top:0!important}
   align-items:center!important;
   justify-content:center!important;
   text-align:center!important;
+  place-content:center!important;
   box-sizing:border-box!important;
   padding:40px 20px!important;
   margin:0!important;

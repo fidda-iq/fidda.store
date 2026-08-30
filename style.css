@@ -1879,3 +1879,30 @@ body{padding-top:0!important}
 @media(max-width:700px){
   .drawer-nav a span{min-height:62px!important;}
 }
+
+/* ===== FIDDA V7.1 — إصلاح طبقة التواصل والتفاعل ===== */
+/* إزالة البقعة الدائرية التي كانت تغطي روابط قسم تواصل معنا */
+.footer{
+  position:relative!important;
+  overflow:hidden!important;
+  background:#0d0d0d!important;
+}
+.footer:before{
+  display:none!important;
+  content:none!important;
+}
+.footer-grid,
+.footer-brand,
+.footer-instagram,
+.footer-store,
+.footer-help,
+.footer-bottom{
+  position:relative!important;
+  z-index:1!important;
+}
+.footer a{
+  position:relative!important;
+  z-index:2!important;
+  pointer-events:auto!important;
+  cursor:pointer!important;
+}

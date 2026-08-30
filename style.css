@@ -1583,3 +1583,36 @@ body{padding-top:0!important}
     background:linear-gradient(160deg,#c4c7c9 0%,#85898c 42%,#4e5154 100%) !important;
   }
 }
+
+
+/* ===== تعديلات الواجهة النهائية قبل فصل لوحة الإدارة ===== */
+/* قسم الأكثر اختيارًا: فضي متدرج بدل الخلفية السوداء */
+.dark-section{
+  background:linear-gradient(135deg,#777 0%,#bdbdbd 38%,#8e8e8e 68%,#5f5f5f 100%);
+  color:#fff;
+}
+.dark-section .eyebrow{color:rgba(255,255,255,.82)}
+.dark-section .section-heading h2{color:#fff}
+.dark-section .text-link{color:#fff;border-color:rgba(255,255,255,.7)}
+.dark-section .product-card{
+  background:linear-gradient(145deg,rgba(45,45,45,.96),rgba(92,92,92,.94));
+  border-color:rgba(255,255,255,.2);
+  box-shadow:0 14px 32px rgba(0,0,0,.18);
+}
+.dark-section .product-info h3,
+.dark-section .product-info h3 a{color:#fff}
+.dark-section .product-bottom strong{color:#fff}
+.dark-section .stock-badge{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.25)}
+.dark-section .stock-badge.available{color:#fff}
+.dark-section .stock-badge.unavailable{color:#ffe1e1}
+.dark-section .add-btn{color:#fff;border-color:rgba(255,255,255,.55)}
+
+/* عبارة الواجهة أكبر قليلًا على الهاتف حتى تبدو مصممة للهاتف، لا مصغرة من نسخة الكمبيوتر */
+@media (max-width:600px){
+  .hero h1{font-size:40px;line-height:1.22;letter-spacing:-.5px}
+  .hero h1 span{font-size:.76em}
+  .hero-copy{padding-inline:2px}
+  .dark-section{background:linear-gradient(145deg,#727272 0%,#bcbcbc 42%,#898989 72%,#606060 100%)}
+  .dark-section .product-card{background:linear-gradient(145deg,rgba(52,52,52,.97),rgba(100,100,100,.95))}
+  .dark-section .product-info h3{font-size:11px;line-height:1.55;min-height:34px;color:#fff}
+}

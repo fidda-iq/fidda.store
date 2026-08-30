@@ -177,16 +177,14 @@ function setupCheckout(){
     const customer=Object.fromEntries(new FormData(f).entries());customer.phone=normalizeIraqiPhone(customer.phone);const t=cartTotals();
     const items=cart.map(i=>{const p=products.find(x=>Number(x.id)===Number(i.id));return{id:Number(p.id),qty:Number(i.qty),name:p.name,price:Number(p.price),image:productImages(p)[0]||'',category:p.category,material:p.material||'فضة'}});
     const button=f.querySelector('button[type="submit"]');if(button){button.disabled=true;button.dataset.original=button.textContent;button.textContent='جارٍ تأكيد الطلب...'}
-    const optimisticToken=broadcastOptimisticOrderStock(items,'reserve');
-    applyLocalOrderStock(items,-1);
+    // لا نحجز أو ننقص المخزون عند مجرد فتح/إضافة القطعة إلى السلة.
+    // إنقاص المخزون يتم فقط داخل create_order عند تثبيت الطلب بنجاح.
     try{
       const result=await dbCreateOrder(customer,items,t.subtotal,t.delivery,t.total);
-      try{localStorage.setItem('fiddaOrderStockSync_v1',JSON.stringify({type:'order-stock-optimistic',mode:'confirm',token:optimisticToken,items,at:Date.now()}));}catch(e){}
       localStorage.removeItem(CART_KEY);updateCartCount();f.classList.add('hidden');const success=document.getElementById('orderSuccess');success.classList.remove('hidden');success.innerHTML=`<div class="success-icon">✓</div><p class="eyebrow">ORDER CONFIRMED</p><h2>تم استلام طلبك بنجاح</h2><p>رقم الطلب: <b>${escapeHtml(result.id)}</b></p><p>الإجمالي: <b>${formatPrice(t.total)}</b> شامل التوصيل.</p><p>سنتواصل معك لتأكيد الطلب وتجهيزه.</p>`;const modal=document.getElementById('orderSuccessModal');const details=document.getElementById('successDetails');if(modal&&details){details.className='success-details';details.innerHTML=`<div class="detail-row"><span>رقم الطلب</span><b>${escapeHtml(result.id)}</b></div><div class="detail-row"><span>الإجمالي</span><b>${formatPrice(t.total)} شامل التوصيل</b></div>`;modal.classList.remove('hidden');document.body.style.overflow='hidden';}refreshStoreData().catch(e=>console.error('Background store refresh:',e));
     }catch(err){
       console.error(err);
-      applyLocalOrderStock(items,1);
-      try{localStorage.setItem('fiddaOrderStockSync_v1',JSON.stringify({type:'order-stock-optimistic',mode:'rollback',token:optimisticToken,items,at:Date.now()}));}catch(e){}
+      // لم يتم تثبيت الطلب، لذلك لا نلمس المخزون المحلي إطلاقًا.
       showToast(String(err?.message||'').includes('غير متوفرة')?'الكمية لم تعد متوفرة. حدّث السلة وحاول مرة أخرى.':'تعذر إرسال الطلب. حاول مرة أخرى.','error');
       if(button){button.disabled=false;button.textContent=button.dataset.original||'تأكيد الطلب'}
     }

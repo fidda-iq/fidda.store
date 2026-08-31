@@ -202,7 +202,6 @@ function setupCheckout(){
     // إنقاص المخزون يتم فقط داخل create_order عند تثبيت الطلب بنجاح.
     try{
       const result=await dbCreateOrder(customer,items,t.subtotal,t.delivery,t.total);
-      notifyFiddaNewOrder(result.id);
       localStorage.removeItem(CART_KEY);updateCartCount();f.classList.add('hidden');const success=document.getElementById('orderSuccess');success.classList.remove('hidden');success.innerHTML=`<div class="success-icon">✓</div><p class="eyebrow">ORDER CONFIRMED</p><h2>تم استلام طلبك بنجاح</h2><p>رقم الطلب: <b>${escapeHtml(result.id)}</b></p><p>الإجمالي: <b>${formatPrice(t.total)}</b> شامل التوصيل.</p><p>سنتواصل معك لتأكيد الطلب وتجهيزه.</p>`;const modal=document.getElementById('orderSuccessModal');const details=document.getElementById('successDetails');if(modal&&details){details.className='success-details';details.innerHTML=`<div class="detail-row"><span>رقم الطلب</span><b>${escapeHtml(result.id)}</b></div><div class="detail-row"><span>الإجمالي</span><b>${formatPrice(t.total)} شامل التوصيل</b></div>`;modal.classList.remove('hidden');document.body.style.overflow='hidden';}refreshStoreData().catch(e=>console.error('Background store refresh:',e));
     }catch(err){
       console.error(err);
@@ -317,18 +316,10 @@ function publishLiveProducts(list){
   try{localStorage.setItem(FIDDA_LIVE_SYNC_KEY,JSON.stringify({type:'products',at:Date.now(),products:window.FIDDA_PRODUCTS}));}catch(e){}
   syncVisibleStoreAfterDataRefresh();
 }
-// عند تغيّر حالة أي طلب في Supabase، نعيد قراءة المنتجات فورًا.
-// هذا يوفر مسارًا فوريًا حتى لو لم يكن جدول products مضافًا إلى Realtime بعد.
-window.addEventListener('fidda-orders-changed',event=>{
-  // لا ننتظر الطلبات لإعادة قراءة products: حدث products نفسه يحدّث المخزون فور وصوله.
-  // هذا المستمع موجود فقط للتوافق مع النسخ القديمة ولا يفرض أي تأخير زمني.
-});
 window.addEventListener('fidda-live-broadcast',event=>{
   const payload=event.detail||{};
   if(payload.type==='products'||payload.type==='categories'){
     window.dispatchEvent(new CustomEvent('fidda-data-changed',{detail:{table:payload.type,eventType:payload.eventType,new:payload.new,old:payload.old,source:'broadcast'}}));
-  }else if(payload.type==='orders'){
-    window.dispatchEvent(new CustomEvent('fidda-orders-changed',{detail:{eventType:payload.eventType,new:payload.new,old:payload.old,source:'broadcast'}}));
   }
 });
 window.addEventListener('fidda-data-changed',event=>{

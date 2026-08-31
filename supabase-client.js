@@ -375,9 +375,9 @@ async function fiddaRealtimeFallbackRefresh(){
 
 
 // إحصاء زيارات المتجر — تسجيل موثوق وسريع مع إعادة المحاولة عند انقطاع الشبكة.
-const FIDDA_VISITOR_ID_KEY='fiddaVisitorId_v2';
-const FIDDA_VISIT_LAST_SENT_KEY='fiddaVisitLastSent_v2';
-const FIDDA_VISIT_PENDING_KEY='fiddaVisitPending_v2';
+const FIDDA_VISITOR_ID_KEY='fiddaVisitorId_v3';
+const FIDDA_VISIT_LAST_SENT_KEY='fiddaVisitLastSent_v3';
+const FIDDA_VISIT_PENDING_KEY='fiddaVisitPending_v3';
 function getFiddaVisitorId(){
   try{
     let id=localStorage.getItem(FIDDA_VISITOR_ID_KEY);
@@ -414,6 +414,7 @@ function bootFiddaVisitTracking(){
   trackFiddaStoreVisit();
   [800,2500,6000].forEach(ms=>setTimeout(()=>trackFiddaStoreVisit(),ms));
 }
+bootFiddaVisitTracking();
 document.addEventListener('DOMContentLoaded',bootFiddaVisitTracking,{once:true});
 window.addEventListener('online',()=>trackFiddaStoreVisit());
 window.addEventListener('pageshow',()=>trackFiddaStoreVisit());

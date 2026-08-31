@@ -9,9 +9,9 @@ window.FIDDA_DB_READY = false;
 window.FIDDA_DB_ERROR = '';
 
 const FIDDA_ADMIN_PAGE = !!document.body?.classList.contains('admin-body') || /(^|\/)admin(?:\.html)?$/i.test(location.pathname);
-const FIDDA_CACHE_PRODUCTS = FIDDA_ADMIN_PAGE ? 'fiddaLiveProductsCache_v6' : 'fiddaLiveProductsCache_v6';
-const FIDDA_CACHE_CATEGORIES = FIDDA_ADMIN_PAGE ? 'fiddaLiveCategoriesCache_v6' : 'fiddaLiveCategoriesCache_v6';
-const FIDDA_CACHE_TIME = FIDDA_ADMIN_PAGE ? 'fiddaLiveDataCacheTime_v6' : 'fiddaLiveDataCacheTime_v6';
+const FIDDA_CACHE_PRODUCTS = FIDDA_ADMIN_PAGE ? 'fiddaLiveProductsCache_v7' : 'fiddaLiveProductsCache_v7';
+const FIDDA_CACHE_CATEGORIES = FIDDA_ADMIN_PAGE ? 'fiddaLiveCategoriesCache_v7' : 'fiddaLiveCategoriesCache_v7';
+const FIDDA_CACHE_TIME = FIDDA_ADMIN_PAGE ? 'fiddaLiveDataCacheTime_v7' : 'fiddaLiveDataCacheTime_v7';
 const FIDDA_ORDER_CACHE = 'fiddaOrdersCache_v6';
 const FIDDA_LIVE_BROADCAST_CHANNEL = 'fidda-live-products-v2';
 const FIDDA_LOCAL_SYNC_CHANNEL = 'fidda-fidda-admin-local-sync-v3';

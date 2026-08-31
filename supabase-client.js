@@ -309,7 +309,7 @@ async function dbGetOrders(){
 }
 async function dbUpdateOrderStatus(id,status){
   const db=await ensureFiddaSupabase();
-  const {data,error}=await db.rpc('fidda_set_order_status',{p_id:Number(id),p_status:status});
+  const {data,error}=await db.rpc('fidda_set_order_status',{p_id:id,p_status:status});
   if(error)throw error;
   try{
     const {data:row}=await db.from('orders').select('id,customer,items,subtotal,delivery,total,status,created_at,updated_at,status_history').eq('id',id).single();
@@ -319,7 +319,7 @@ async function dbUpdateOrderStatus(id,status){
 }
 async function dbUpdateOrder(id,customer,subtotal,delivery,total,status){
   const db=await ensureFiddaSupabase();
-  const {data,error}=await db.rpc('fidda_update_order',{p_id:Number(id),p_customer:customer,p_subtotal:Number(subtotal)||0,p_delivery:Number(delivery)||0,p_total:Number(total)||0,p_status:status});
+  const {data,error}=await db.rpc('fidda_update_order',{p_id:id,p_customer:customer,p_subtotal:subtotal,p_delivery:delivery,p_total:total,p_status:status});
   if(error)throw error;
   try{
     const {data:row}=await db.from('orders').select('id,customer,items,subtotal,delivery,total,status,created_at,updated_at,status_history').eq('id',id).single();
@@ -329,14 +329,14 @@ async function dbUpdateOrder(id,customer,subtotal,delivery,total,status){
 }
 async function dbDeleteOrder(id){
   const db=await ensureFiddaSupabase();
-  const {data,error}=await db.rpc('fidda_delete_order',{p_id:Number(id)});
+  const {data,error}=await db.rpc('fidda_delete_order',{p_id:id});
   if(error)throw error;
   broadcastFiddaLiveChange({type:'orders',eventType:'DELETE',old:{id},at:Date.now()});
   return data||{id};
 }
 async function dbCreateOrder(customer,items,subtotal,delivery,total){
   const db=await ensureFiddaSupabase();
-  const {data,error}=await db.rpc('fidda_create_order',{p_customer:customer,p_items:items,p_subtotal:Number(subtotal)||0,p_delivery:Number(delivery)||0,p_total:Number(total)||0});
+  const {data,error}=await db.rpc('fidda_create_order',{p_customer:customer,p_items:items,p_subtotal:subtotal,p_delivery:delivery,p_total:total});
   if(error)throw error;
   try{
     const orderId=(data&&typeof data==='object'&&data.id)||data;

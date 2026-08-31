@@ -9,10 +9,10 @@ window.FIDDA_DB_READY = false;
 window.FIDDA_DB_ERROR = '';
 
 const FIDDA_ADMIN_PAGE = !!document.body?.classList.contains('admin-body') || /(^|\/)admin(?:\.html)?$/i.test(location.pathname);
-const FIDDA_CACHE_PRODUCTS = FIDDA_ADMIN_PAGE ? 'fiddaAdminProductsCache_v2' : 'fiddaProductsCache_v4';
-const FIDDA_CACHE_CATEGORIES = FIDDA_ADMIN_PAGE ? 'fiddaAdminCategoriesCache_v2' : 'fiddaCategoriesCache_v4';
-const FIDDA_CACHE_TIME = FIDDA_ADMIN_PAGE ? 'fiddaAdminDataCacheTime_v2' : 'fiddaDataCacheTime_v4';
-const FIDDA_ORDER_CACHE = 'fiddaOrdersCache_v5';
+const FIDDA_CACHE_PRODUCTS = FIDDA_ADMIN_PAGE ? 'fiddaLiveProductsCache_v6' : 'fiddaLiveProductsCache_v6';
+const FIDDA_CACHE_CATEGORIES = FIDDA_ADMIN_PAGE ? 'fiddaLiveCategoriesCache_v6' : 'fiddaLiveCategoriesCache_v6';
+const FIDDA_CACHE_TIME = FIDDA_ADMIN_PAGE ? 'fiddaLiveDataCacheTime_v6' : 'fiddaLiveDataCacheTime_v6';
+const FIDDA_ORDER_CACHE = 'fiddaOrdersCache_v6';
 const FIDDA_LIVE_BROADCAST_CHANNEL = 'fidda-live-products-v2';
 
 function readLocalArray(key){ try { const v=JSON.parse(localStorage.getItem(key)||'[]'); return Array.isArray(v)?v:[]; } catch { return []; } }
@@ -231,9 +231,10 @@ async function dbUpdateOrderStatus(id,status){const db=await ensureFiddaSupabase
 async function dbUpdateOrder(id,customer,subtotal,delivery,total,status,expectedUpdatedAt=null){const db=await ensureFiddaSupabase();const {data,error}=await db.rpc('update_order',{p_id:id,p_customer:customer,p_subtotal:subtotal,p_delivery:delivery,p_total:total,p_status:status,p_expected_updated_at:expectedUpdatedAt});if(error)throw error;emitLocalOrderChange('UPDATE',data);return data;}
 async function dbDeleteOrder(id){const db=await ensureFiddaSupabase();const {data,error}=await db.rpc('delete_order',{p_id:id});if(error)throw error;if(FIDDA_ADMIN_PAGE)window.dispatchEvent(new CustomEvent('fidda-orders-changed',{detail:{eventType:'DELETE',old:{id},source:'local'}}));return data||{id};}
 async function dbCreateOrder(customer,items,subtotal,delivery,total){const db=await ensureFiddaSupabase();const {data,error}=await db.rpc('create_order',{p_customer:customer,p_items:items,p_subtotal:subtotal,p_delivery:delivery,p_total:total});if(error)throw error;emitLocalOrderChange('INSERT',data);return data;}
+async function dbRecordVisit(visitorId){const db=await ensureFiddaSupabase();const {data,error}=await db.rpc('fidda_record_store_visit',{p_visitor_id:String(visitorId||'')});if(error)throw error;return data||{recorded:false,new_visit:false};}
 async function dbGetVisitStats(){const db=await ensureFiddaSupabase();const {data,error}=await db.rpc('fidda_get_store_visit_stats');if(error)throw error;return data||{total:0,today:0,last7days:0,thisMonth:0};}
 
 if(FIDDA_ADMIN_PAGE&&!fiddaAuthHooked){fiddaAuthHooked=true;ensureFiddaSupabase().then(db=>db.auth.onAuthStateChange((event,session)=>{if(session)startFiddaOrdersRealtime();else stopFiddaOrdersRealtime();})).catch(()=>{});}
 
-window.ensureFiddaSupabase=ensureFiddaSupabase;window.fiddaDbInit=fiddaDbInit;window.dbGetProduct=dbGetProduct;window.dbSaveProduct=dbSaveProduct;window.dbDeleteProduct=dbDeleteProduct;window.dbSaveCategory=dbSaveCategory;window.dbDeleteCategory=dbDeleteCategory;window.dbGetOrders=dbGetOrders;window.dbUpdateOrderStatus=dbUpdateOrderStatus;window.dbUpdateOrder=dbUpdateOrder;window.dbDeleteOrder=dbDeleteOrder;window.dbCreateOrder=dbCreateOrder;window.dbGetVisitStats=dbGetVisitStats;window.startFiddaRealtime=startFiddaRealtime;
+window.ensureFiddaSupabase=ensureFiddaSupabase;window.fiddaDbInit=fiddaDbInit;window.dbGetProduct=dbGetProduct;window.dbSaveProduct=dbSaveProduct;window.dbDeleteProduct=dbDeleteProduct;window.dbSaveCategory=dbSaveCategory;window.dbDeleteCategory=dbDeleteCategory;window.dbGetOrders=dbGetOrders;window.dbUpdateOrderStatus=dbUpdateOrderStatus;window.dbUpdateOrder=dbUpdateOrder;window.dbDeleteOrder=dbDeleteOrder;window.dbCreateOrder=dbCreateOrder;window.dbRecordVisit=dbRecordVisit;window.dbGetVisitStats=dbGetVisitStats;window.startFiddaRealtime=startFiddaRealtime;
 window.fiddaRealtimeState=()=>({admin:FIDDA_ADMIN_PAGE,products:fiddaProductsRealtimeStatus,orders:fiddaOrdersRealtimeStatus,visits:fiddaVisitsRealtimeStatus,broadcast:fiddaBroadcastStatus});

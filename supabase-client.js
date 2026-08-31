@@ -374,7 +374,7 @@ async function fiddaRealtimeFallbackRefresh(){
 
 
 
-// إحصاء زيارات المتجر — تسجيل موثوق وسريع مع إعادة المحاولة عند انقطاع الشبكة.
+// إحصاء زيارات المتجر — تسجيل خفيف وفوري، والإحصائيات تُحدّث في لوحة الإدارة عبر Realtime.
 const FIDDA_VISITOR_ID_KEY='fiddaVisitorId_v3';
 const FIDDA_VISIT_LAST_SENT_KEY='fiddaVisitLastSent_v3';
 const FIDDA_VISIT_PENDING_KEY='fiddaVisitPending_v3';

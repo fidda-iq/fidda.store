@@ -374,8 +374,10 @@ async function fiddaRealtimeFallbackRefresh(){
 
 
 
-// إحصاء زيارات المتجر: زيارة واحدة لكل زائر خلال 30 دقيقة، مع الاحتفاظ بالزائر عبر الصفحات.
-const FIDDA_VISITOR_ID_KEY='fiddaVisitorId_v1';
+// إحصاء زيارات المتجر — تسجيل موثوق وسريع مع إعادة المحاولة عند انقطاع الشبكة.
+const FIDDA_VISITOR_ID_KEY='fiddaVisitorId_v2';
+const FIDDA_VISIT_LAST_SENT_KEY='fiddaVisitLastSent_v2';
+const FIDDA_VISIT_PENDING_KEY='fiddaVisitPending_v2';
 function getFiddaVisitorId(){
   try{
     let id=localStorage.getItem(FIDDA_VISITOR_ID_KEY);
@@ -383,19 +385,39 @@ function getFiddaVisitorId(){
     return id;
   }catch(e){return 'v_'+Math.random().toString(36).slice(2)+Date.now()}
 }
-async function trackFiddaStoreVisit(){
+function fiddaVisitWasRecentlySent(){
+  try{return Date.now()-Number(localStorage.getItem(FIDDA_VISIT_LAST_SENT_KEY)||0)<30*60*1000}catch(e){return false}
+}
+function markFiddaVisitSent(){try{localStorage.setItem(FIDDA_VISIT_LAST_SENT_KEY,String(Date.now()));localStorage.removeItem(FIDDA_VISIT_PENDING_KEY)}catch(e){}}
+function markFiddaVisitPending(){try{localStorage.setItem(FIDDA_VISIT_PENDING_KEY,'1')}catch(e){}}
+async function trackFiddaStoreVisit(force=false){
   if(location.pathname.toLowerCase().includes('/admin'))return null;
+  if(!force && fiddaVisitWasRecentlySent() && localStorage.getItem(FIDDA_VISIT_PENDING_KEY)!=='1')return null;
   try{
     const db=await ensureFiddaSupabase();
     const visitorId=getFiddaVisitorId();
     const {data,error}=await db.rpc('fidda_record_store_visit',{p_visitor_id:visitorId});
-    if(error) throw error;
+    if(error)throw error;
+    markFiddaVisitSent();
     window.dispatchEvent(new CustomEvent('fidda-visit-recorded',{detail:data||{}}));
     return data;
-  }catch(e){console.warn('FIDDA visit tracking:',e);return null}
+  }catch(e){
+    markFiddaVisitPending();
+    console.warn('FIDDA visit tracking:',e);
+    return null;
+  }
 }
 window.trackFiddaStoreVisit=trackFiddaStoreVisit;
-setTimeout(()=>trackFiddaStoreVisit(),1200);
+function bootFiddaVisitTracking(){
+  if(location.pathname.toLowerCase().includes('/admin'))return;
+  // محاولة مبكرة، ثم محاولات قصيرة في حال تأخر تحميل Supabase أو عودة الاتصال.
+  trackFiddaStoreVisit();
+  [800,2500,6000].forEach(ms=>setTimeout(()=>trackFiddaStoreVisit(),ms));
+}
+document.addEventListener('DOMContentLoaded',bootFiddaVisitTracking,{once:true});
+window.addEventListener('online',()=>trackFiddaStoreVisit());
+window.addEventListener('pageshow',()=>trackFiddaStoreVisit());
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')trackFiddaStoreVisit()});
 
 window.ensureFiddaSupabase=ensureFiddaSupabase;window.fiddaDbInit=fiddaDbInit;window.dbGetProduct=dbGetProduct;window.dbSaveProduct=dbSaveProduct;window.dbDeleteProduct=dbDeleteProduct;window.dbSaveCategory=dbSaveCategory;window.dbDeleteCategory=dbDeleteCategory;window.dbGetOrders=dbGetOrders;window.dbUpdateOrderStatus=dbUpdateOrderStatus;window.dbUpdateOrder=dbUpdateOrder;window.dbDeleteOrder=dbDeleteOrder;window.dbCreateOrder=dbCreateOrder;
 

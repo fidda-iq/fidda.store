@@ -1,4 +1,4 @@
-const CACHE = "fidda-store-v1";
+const CACHE = "fidda-store-v2-live";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -51,7 +51,22 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // Static files: cache first, then update from network.
+  // ملفات التطبيق البرمجية وCSS يجب أن تأتي من الشبكة أولًا حتى تصل أي نسخة منشورة جديدة فورًا.
+  const liveAsset = ['script','style'].includes(req.destination) || /\.(js|css)(\?|$)/i.test(url.pathname);
+  if (liveAsset) {
+    event.respondWith(
+      fetch(req, {cache:'no-store'}).then(res => {
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then(cache => cache.put(req, copy));
+        }
+        return res;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // الصور والملفات الثابتة الأخرى: الكاش أولًا مع تحديث الشبكة في الخلفية.
   event.respondWith(
     caches.match(req).then(cached => {
       const network = fetch(req).then(res => {

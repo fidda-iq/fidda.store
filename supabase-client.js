@@ -372,6 +372,31 @@ async function fiddaRealtimeFallbackRefresh(){
   }
 }
 
+
+
+// إحصاء زيارات المتجر: زيارة واحدة لكل زائر خلال 30 دقيقة، مع الاحتفاظ بالزائر عبر الصفحات.
+const FIDDA_VISITOR_ID_KEY='fiddaVisitorId_v1';
+function getFiddaVisitorId(){
+  try{
+    let id=localStorage.getItem(FIDDA_VISITOR_ID_KEY);
+    if(!id){id=(crypto?.randomUUID?.()||('v_'+Math.random().toString(36).slice(2)+Date.now()));localStorage.setItem(FIDDA_VISITOR_ID_KEY,id)}
+    return id;
+  }catch(e){return 'v_'+Math.random().toString(36).slice(2)+Date.now()}
+}
+async function trackFiddaStoreVisit(){
+  if(location.pathname.toLowerCase().includes('/admin'))return null;
+  try{
+    const db=await ensureFiddaSupabase();
+    const visitorId=getFiddaVisitorId();
+    const {data,error}=await db.rpc('fidda_record_store_visit',{p_visitor_id:visitorId});
+    if(error) throw error;
+    window.dispatchEvent(new CustomEvent('fidda-visit-recorded',{detail:data||{}}));
+    return data;
+  }catch(e){console.warn('FIDDA visit tracking:',e);return null}
+}
+window.trackFiddaStoreVisit=trackFiddaStoreVisit;
+setTimeout(()=>trackFiddaStoreVisit(),1200);
+
 window.ensureFiddaSupabase=ensureFiddaSupabase;window.fiddaDbInit=fiddaDbInit;window.dbGetProduct=dbGetProduct;window.dbSaveProduct=dbSaveProduct;window.dbDeleteProduct=dbDeleteProduct;window.dbSaveCategory=dbSaveCategory;window.dbDeleteCategory=dbDeleteCategory;window.dbGetOrders=dbGetOrders;window.dbUpdateOrderStatus=dbUpdateOrderStatus;window.dbUpdateOrder=dbUpdateOrder;window.dbDeleteOrder=dbDeleteOrder;window.dbCreateOrder=dbCreateOrder;
 
 window.startFiddaRealtime=startFiddaRealtime;

@@ -163,6 +163,19 @@ function renderCheckout(){
   if(!cart.length){if(!document.getElementById('orderSuccess')?.classList.contains('hidden'))return;location.replace('cart.html');return}
   const t=cartTotals();el.innerHTML=`<p class="eyebrow">YOUR ORDER</p><h2>ملخص الطلب</h2>${cart.map(i=>{const p=products.find(x=>Number(x.id)===Number(i.id));return p?`<a class="summary-product" href="product.html?id=${encodeURIComponent(p.id)}"><img src="${escapeHtml(productImages(p)[0]||'')}" alt=""><div><b>${escapeHtml(p.name)}</b><small>الكمية: ${i.qty}</small></div><strong>${formatPrice(p.price*i.qty)}</strong></a>`:''}).join('')}<div class="summary-line"><span>مجموع المنتجات</span><b>${formatPrice(t.subtotal)}</b></div><div class="summary-line"><span>التوصيل</span><b>${formatPrice(t.delivery)}</b></div><div class="summary-total"><span>الإجمالي النهائي</span><b>${formatPrice(t.total)}</b></div>`
 }
+const FIDDA_CUSTOMER_ID_KEY='fiddaCustomerId_v1';
+function getFiddaCustomerId(){
+  try{
+    let id=localStorage.getItem(FIDDA_CUSTOMER_ID_KEY);
+    if(!id){
+      const raw=(crypto?.randomUUID?.()||('c_'+Math.random().toString(36).slice(2)+Date.now()));
+      id='FID-C-'+raw.replace(/[^a-zA-Z0-9]/g,'').slice(-12).toUpperCase();
+      localStorage.setItem(FIDDA_CUSTOMER_ID_KEY,id);
+    }
+    return id;
+  }catch(e){return 'FID-C-'+Math.random().toString(36).slice(2,14).toUpperCase()}
+}
+window.getFiddaCustomerId=getFiddaCustomerId;
 function normalizeIraqiPhone(v){return String(v||'').replace(/\D/g,'')}
 function isValidIraqiPhone(v){return /^07\d{9}$/.test(normalizeIraqiPhone(v))}
 async function notifyFiddaNewOrder(orderId){
@@ -182,7 +195,7 @@ function setupCheckout(){
     if(!window.FIDDA_DB_READY){showToast('جارٍ الاتصال بالمتجر، حاول بعد لحظات','error');return}
     const cart=getCart(),products=getProducts();if(!cart.length){location.replace('cart.html');return}
     for(const item of cart){const p=products.find(x=>Number(x.id)===Number(item.id));if(!p||p.stock<Number(item.qty)){showToast(p?`لم تعد الكمية المطلوبة من ${p.name} متوفرة`:'إحدى القطع لم تعد متوفرة','error');await refreshStoreData();renderCheckout();return}}
-    const customer=Object.fromEntries(new FormData(f).entries());customer.phone=normalizeIraqiPhone(customer.phone);const t=cartTotals();
+    const customer=Object.fromEntries(new FormData(f).entries());customer.phone=normalizeIraqiPhone(customer.phone);customer.customer_id=getFiddaCustomerId();delete customer.instagram;const t=cartTotals();
     const items=cart.map(i=>{const p=products.find(x=>Number(x.id)===Number(i.id));return{id:Number(p.id),qty:Number(i.qty),name:p.name,price:Number(p.price),image:productImages(p)[0]||'',category:p.category,material:p.material||'فضة'}});
     const button=f.querySelector('button[type="submit"]');if(button){button.disabled=true;button.dataset.original=button.textContent;button.textContent='جارٍ تأكيد الطلب...'}
     // لا نحجز أو ننقص المخزون عند مجرد فتح/إضافة القطعة إلى السلة.

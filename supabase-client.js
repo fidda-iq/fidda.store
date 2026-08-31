@@ -188,6 +188,7 @@ function scheduleFiddaRealtimeReconnect(){
 function startFiddaRealtime(){
   if(!fiddaSupabase)return;
   startFiddaLiveBroadcast();
+  bindFiddaRealtimeRecovery();
 
   // قناة المنتجات والأقسام: تعمل في المتجر والإدارة معًا.
   if(!fiddaProductsChannel){
@@ -236,17 +237,33 @@ function startFiddaRealtime(){
   startFiddaOrdersRealtime();
   fiddaRealtimeStarted=true;
 
-  // مزامنة احتياطية فقط عند انقطاع Realtime. عند الاتصال الطبيعي لا يوجد polling.
+  // مزامنة احتياطية فقط عند انقطاع Realtime. عند الاتصال الطبيعي تعتمد المزامنة على الأحداث اللحظية.
   if(!fiddaRealtimeFallbackTimer){
     fiddaRealtimeFallbackTimer=setInterval(()=>{
       if(document.visibilityState==='hidden')return;
       const live=fiddaProductsRealtimeStatus==='SUBSCRIBED';
-      if(!live && typeof window.fiddaDbInit==='function'){
-        fiddaRealtimeFallbackRefresh().catch(()=>{});
-      }
-    },8000);
+      if(!live) fiddaRealtimeFallbackRefresh().catch(()=>{});
+    },3500);
   }
 }
+
+let fiddaRecoveryBound=false;
+function recoverFiddaRealtimeNow(){
+  if(!fiddaSupabase)return;
+  try{fiddaSupabase.realtime?.connect?.()}catch(e){}
+  startFiddaRealtime();
+  // عند العودة من قفل الشاشة نعيد القراءة مرة واحدة فورًا حتى لو فاتت أحداث أثناء النوم.
+  if(document.visibilityState!=='hidden') fiddaRealtimeFallbackRefresh().catch(()=>{});
+}
+function bindFiddaRealtimeRecovery(){
+  if(fiddaRecoveryBound)return;
+  fiddaRecoveryBound=true;
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')recoverFiddaRealtimeNow()});
+  window.addEventListener('online',recoverFiddaRealtimeNow);
+  window.addEventListener('focus',recoverFiddaRealtimeNow);
+  window.addEventListener('pageshow',recoverFiddaRealtimeNow);
+}
+
 
 function readLocalArray(k){try{const x=localStorage.getItem(k);return x?JSON.parse(x):[]}catch(e){return[]}}
 function productToRow(p){return {id:Number(p.id),name:p.name,category:p.category,price:Number(p.price)||0,description:p.desc||'',material:p.material||'فضة',payment:p.payment||'الدفع عند الاستلام',images:Array.isArray(p.images)?p.images:[],stock:Math.max(0,Number(p.stock)||0),custom_fields:Array.isArray(p.customFields)?p.customFields:[],featured:!!p.featured}}

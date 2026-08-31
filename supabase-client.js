@@ -14,6 +14,28 @@ const FIDDA_CACHE_CATEGORIES = FIDDA_ADMIN_PAGE ? 'fiddaLiveCategoriesCache_v6' 
 const FIDDA_CACHE_TIME = FIDDA_ADMIN_PAGE ? 'fiddaLiveDataCacheTime_v6' : 'fiddaLiveDataCacheTime_v6';
 const FIDDA_ORDER_CACHE = 'fiddaOrdersCache_v6';
 const FIDDA_LIVE_BROADCAST_CHANNEL = 'fidda-live-products-v2';
+const FIDDA_LOCAL_SYNC_CHANNEL = 'fidda-fidda-admin-local-sync-v3';
+let fiddaLocalSyncChannel=null;
+function startFiddaLocalSync(){
+  if(fiddaLocalSyncChannel || !('BroadcastChannel' in window)) return;
+  try{
+    fiddaLocalSyncChannel=new BroadcastChannel(FIDDA_LOCAL_SYNC_CHANNEL);
+    fiddaLocalSyncChannel.onmessage=e=>{
+      const m=e.data||{};
+      if(m.sourceId===window.__fiddaLocalSourceId)return;
+      if(m.type==='product-optimistic' || m.type==='product-rollback')
+        window.dispatchEvent(new CustomEvent('fidda-local-product-sync',{detail:m}));
+    };
+  }catch(e){fiddaLocalSyncChannel=null;}
+}
+function broadcastFiddaLocalSync(message){
+  if(!message)return;
+  const sourceId=window.__fiddaLocalSourceId||(window.__fiddaLocalSourceId=Math.random().toString(36).slice(2)+Date.now());
+  const msg={...message,sourceId,at:Date.now()};
+  window.dispatchEvent(new CustomEvent('fidda-local-product-sync',{detail:msg}));
+  try{startFiddaLocalSync();fiddaLocalSyncChannel?.postMessage(msg);}catch(e){}
+}
+
 
 function readLocalArray(key){ try { const v=JSON.parse(localStorage.getItem(key)||'[]'); return Array.isArray(v)?v:[]; } catch { return []; } }
 function writeJson(key,value){ try { localStorage.setItem(key,JSON.stringify(value)); } catch {} }
@@ -29,6 +51,11 @@ function fiddaWriteCache(products,categories){
   try{localStorage.setItem(FIDDA_CACHE_TIME,String(Date.now()));}catch{}
 }
 window.fiddaHasCache=fiddaReadCache();
+window.addEventListener('storage',e=>{
+  if(e.key===FIDDA_CACHE_PRODUCTS && e.newValue){ try{window.FIDDA_PRODUCTS=JSON.parse(e.newValue).map(rowToProduct);window.dispatchEvent(new CustomEvent('fidda-cache-products-changed'));}catch(err){} }
+  if(e.key===FIDDA_CACHE_CATEGORIES && e.newValue){ try{window.FIDDA_CATEGORIES=JSON.parse(e.newValue).map(rowToCategory);window.dispatchEvent(new CustomEvent('fidda-cache-categories-changed'));}catch(err){} }
+});
+
 
 async function ensureFiddaSupabase(){
   if(fiddaSupabase) return fiddaSupabase;
@@ -57,7 +84,8 @@ async function ensureFiddaSupabase(){
 let fiddaProductsChannel=null, fiddaOrdersChannel=null, fiddaVisitsChannel=null, fiddaBroadcastChannel=null;
 let fiddaProductsRealtimeStatus='DISCONNECTED', fiddaOrdersRealtimeStatus='DISCONNECTED', fiddaVisitsRealtimeStatus='DISCONNECTED', fiddaBroadcastStatus='DISCONNECTED';
 let fiddaRealtimeReconnectTimer=null, fiddaRealtimeFallbackTimer=null, fiddaOrdersFallbackTimer=null, fiddaRecoveryBound=false, fiddaAuthHooked=false;
-let fiddaReconnectDelay=1000;
+let fiddaReconnectDelay=300;
+const FIDDA_MAX_RECONNECT_DELAY=4000;
 
 function emitFiddaRealtimeStatus(table,status){
   window.dispatchEvent(new CustomEvent('fidda-realtime-status',{detail:{table,status}}));
@@ -130,7 +158,7 @@ function startFiddaVisitsRealtime(){
 }
 function scheduleFiddaRealtimeReconnect(){
   if(fiddaRealtimeReconnectTimer)return;
-  const delay=Math.min(fiddaReconnectDelay,15000); fiddaReconnectDelay=Math.min(fiddaReconnectDelay*2,15000);
+  const delay=Math.min(fiddaReconnectDelay,FIDDA_MAX_RECONNECT_DELAY); fiddaReconnectDelay=Math.min(Math.max(fiddaReconnectDelay*2,500),FIDDA_MAX_RECONNECT_DELAY);
   fiddaRealtimeReconnectTimer=setTimeout(()=>{fiddaRealtimeReconnectTimer=null;startFiddaRealtime();},delay);
 }
 async function fiddaRealtimeFallbackRefresh(){
@@ -161,20 +189,20 @@ function bindFiddaRealtimeRecovery(){
 }
 function startFiddaRealtime(){
   if(!fiddaSupabase)return;
-  startFiddaBroadcast();startFiddaProductsRealtime();
+  startFiddaLocalSync();startFiddaBroadcast();startFiddaProductsRealtime();
   if(FIDDA_ADMIN_PAGE){startFiddaOrdersRealtime();startFiddaVisitsRealtime();}
   bindFiddaRealtimeRecovery();
   if(!fiddaRealtimeFallbackTimer){
     fiddaRealtimeFallbackTimer=setInterval(()=>{
       if(document.visibilityState==='hidden')return;
       if(fiddaProductsRealtimeStatus!=='SUBSCRIBED')fiddaRealtimeFallbackRefresh().catch(()=>{});
-    },15000);
+    },3000);
   }
   if(FIDDA_ADMIN_PAGE&&!fiddaOrdersFallbackTimer){
     fiddaOrdersFallbackTimer=setInterval(()=>{
       if(document.visibilityState==='hidden'||!window.isFiddaAdmin?.())return;
       if(fiddaOrdersRealtimeStatus!=='SUBSCRIBED')dbGetOrders().then(o=>{writeJson(FIDDA_ORDER_CACHE,o);window.dispatchEvent(new CustomEvent('fidda-orders-resynced',{detail:o}));}).catch(()=>{});
-    },15000);
+    },3000);
   }
 }
 
@@ -211,8 +239,8 @@ function categoryToRow(c){return {id:String(c.id),name:c.name,image:c.image||'',
 function rowToCategory(r){return {id:String(r.id),name:r.name,image:r.image||'',sort_order:Number(r.sort_order)||0};}
 
 async function dbGetProduct(id){const db=await ensureFiddaSupabase();const {data,error}=await db.from('products').select('*').eq('id',id).single();if(error)throw error;return rowToProduct(data);}
-async function dbSaveProduct(product){const db=await ensureFiddaSupabase();const {data,error}=await db.from('products').upsert(productToRow(product),{onConflict:'id'}).select('*').single();if(error)throw error;broadcastFiddaProductChange({type:'products',eventType:'UPDATE',new:data,at:Date.now()});return rowToProduct(data);}
-async function dbDeleteProduct(id){const db=await ensureFiddaSupabase();const {error}=await db.from('products').delete().eq('id',id);if(error)throw error;broadcastFiddaProductChange({type:'products',eventType:'DELETE',old:{id:Number(id)},at:Date.now()});}
+async function dbSaveProduct(product){const db=await ensureFiddaSupabase();const row=productToRow(product);broadcastFiddaLocalSync({type:'product-optimistic',eventType:'UPDATE',new:row});const {data,error}=await db.from('products').upsert(row,{onConflict:'id'}).select('*').single();if(error){broadcastFiddaLocalSync({type:'product-rollback',eventType:'ROLLBACK',new:row});throw error;}broadcastFiddaProductChange({type:'products',eventType:'UPDATE',new:data,at:Date.now()});return rowToProduct(data);}
+async function dbDeleteProduct(id){const db=await ensureFiddaSupabase();const old={id:Number(id)};broadcastFiddaLocalSync({type:'product-optimistic',eventType:'DELETE',old});const {error}=await db.from('products').delete().eq('id',id);if(error){broadcastFiddaLocalSync({type:'product-rollback',eventType:'ROLLBACK',old});throw error;}broadcastFiddaProductChange({type:'products',eventType:'DELETE',old,at:Date.now()});}
 async function dbSaveCategory(category){const db=await ensureFiddaSupabase();const {data,error}=await db.from('categories').upsert(categoryToRow(category),{onConflict:'id'}).select('*').single();if(error)throw error;broadcastFiddaProductChange({type:'categories',eventType:'UPDATE',new:data,at:Date.now()});return rowToCategory(data);}
 async function dbDeleteCategory(id){const db=await ensureFiddaSupabase();const {error}=await db.from('categories').delete().eq('id',id);if(error)throw error;broadcastFiddaProductChange({type:'categories',eventType:'DELETE',old:{id:String(id)},at:Date.now()});}
 

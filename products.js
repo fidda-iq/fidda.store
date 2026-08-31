@@ -311,6 +311,15 @@ window.addEventListener('storage',e=>{
   if(e.key==='fiddaOrderStockSync_v1'&&e.newValue){try{handleAdminStockBroadcast(JSON.parse(e.newValue))}catch(err){}}
 });
 window.addEventListener('fidda-db-ready',syncVisibleStoreAfterDataRefresh);
+window.addEventListener('fidda-cache-products-changed',()=>{
+  if(location.pathname.toLowerCase().endsWith('/admin.html')){renderProductsAdmin?.();renderStats?.(readOrderCache?.()||[]);return;}
+  syncVisibleStoreAfterDataRefresh();
+});
+window.addEventListener('fidda-cache-categories-changed',()=>{
+  if(location.pathname.toLowerCase().endsWith('/admin.html')){renderCategoriesAdmin?.();renderProductsAdmin?.();fillCategories?.();return;}
+  syncVisibleStoreAfterDataRefresh();
+});
+
 const FIDDA_LIVE_SYNC_KEY='fiddaLiveSync_v2';
 function persistLiveProducts(list){
   window.FIDDA_PRODUCTS=(list||[]).map(normalizeProduct);
@@ -324,6 +333,17 @@ function publishLiveProducts(list){
   try{localStorage.setItem(FIDDA_LIVE_SYNC_KEY,JSON.stringify({type:'products',at:Date.now(),products:window.FIDDA_PRODUCTS}));}catch(e){}
   syncVisibleStoreAfterDataRefresh();
 }
+window.addEventListener('fidda-local-product-sync',event=>{
+  const p=event.detail||{};
+  if(p.type!=='product-optimistic')return;
+  if(p.eventType==='UPDATE'&&p.new){
+    const next=rowToProduct(p.new),list=getProducts(); const i=list.findIndex(x=>Number(x.id)===Number(next.id));
+    if(i>=0)list[i]=next; else list.unshift(next);
+    persistLiveProducts(list); syncVisibleStoreAfterDataRefresh();
+  }else if(p.eventType==='DELETE'&&p.old){
+    persistLiveProducts(getProducts().filter(x=>Number(x.id)!==Number(p.old.id))); syncVisibleStoreAfterDataRefresh();
+  }
+});
 window.addEventListener('fidda-live-broadcast',event=>{
   const payload=event.detail||{};
   if(payload.type==='products'||payload.type==='categories'){

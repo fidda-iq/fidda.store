@@ -38,7 +38,7 @@ function applyLocalOrderStock(items,direction){
   const ids=new Set((items||[]).map(i=>Number(i.id)));
   const list=getProducts().map(p=>{const item=(items||[]).find(i=>Number(i.id)===Number(p.id));if(!item)return p;const qty=Math.max(1,Math.floor(Number(item.qty)||1));return normalizeProduct({...p,stock:Math.max(0,Number(p.stock||0)+(Number(direction)||0)*qty)});});
   window.FIDDA_PRODUCTS=list;
-  try{localStorage.setItem('fiddaLiveProductsCache_v7',JSON.stringify(list));localStorage.setItem('fiddaLiveDataCacheTime_v7',String(Date.now()));}catch(e){}
+  try{localStorage.setItem('fiddaProductsCache_v3',JSON.stringify(list));localStorage.setItem('fiddaDataCacheTime_v3',String(Date.now()));}catch(e){}
   syncVisibleStoreAfterDataRefresh();
 }
 function getCartItem(id){return getCart().find(i=>Number(i.id)===Number(id))}
@@ -202,6 +202,7 @@ function setupCheckout(){
     // إنقاص المخزون يتم فقط داخل create_order عند تثبيت الطلب بنجاح.
     try{
       const result=await dbCreateOrder(customer,items,t.subtotal,t.delivery,t.total);
+      notifyFiddaNewOrder(result.id);
       localStorage.removeItem(CART_KEY);updateCartCount();f.classList.add('hidden');const success=document.getElementById('orderSuccess');success.classList.remove('hidden');success.innerHTML=`<div class="success-icon">✓</div><p class="eyebrow">ORDER CONFIRMED</p><h2>تم استلام طلبك بنجاح</h2><p>رقم الطلب: <b>${escapeHtml(result.id)}</b></p><p>الإجمالي: <b>${formatPrice(t.total)}</b> شامل التوصيل.</p><p>سنتواصل معك لتأكيد الطلب وتجهيزه.</p>`;const modal=document.getElementById('orderSuccessModal');const details=document.getElementById('successDetails');if(modal&&details){details.className='success-details';details.innerHTML=`<div class="detail-row"><span>رقم الطلب</span><b>${escapeHtml(result.id)}</b></div><div class="detail-row"><span>الإجمالي</span><b>${formatPrice(t.total)} شامل التوصيل</b></div>`;modal.classList.remove('hidden');document.body.style.overflow='hidden';}refreshStoreData().catch(e=>console.error('Background store refresh:',e));
     }catch(err){
       console.error(err);
@@ -223,7 +224,7 @@ async function refreshStoreData({quiet=true}={}){
     const nextProducts=(pr.data||[]).map(rowToProduct),nextCategories=(cr.data||[]).map(rowToCategory);
     const oldP=JSON.stringify(window.FIDDA_PRODUCTS||[]),oldC=JSON.stringify(window.FIDDA_CATEGORIES||[]);
     window.FIDDA_PRODUCTS=nextProducts;window.FIDDA_CATEGORIES=nextCategories;window.FIDDA_DB_READY=true;
-    try{localStorage.setItem('fiddaLiveProductsCache_v7',JSON.stringify(nextProducts));localStorage.setItem('fiddaLiveCategoriesCache_v7',JSON.stringify(nextCategories));localStorage.setItem('fiddaLiveDataCacheTime_v7',String(Date.now()))}catch(e){}
+    try{localStorage.setItem('fiddaProductsCache_v3',JSON.stringify(nextProducts));localStorage.setItem('fiddaCategoriesCache_v3',JSON.stringify(nextCategories));localStorage.setItem('fiddaDataCacheTime_v3',String(Date.now()))}catch(e){}
     __lastStoreRefresh=Date.now();
     if(oldP!==JSON.stringify(nextProducts)||oldC!==JSON.stringify(nextCategories))syncVisibleStoreAfterDataRefresh();
     return true;
@@ -261,13 +262,6 @@ function scheduleStoreRefresh(){
     await refreshStoreData();
   });
 }
-function fiddaGetVisitorId(){
-  const key='fiddaVisitorId_v2';
-  try{let id=localStorage.getItem(key);if(!id){id='FID-V-'+(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)+Date.now()).replace(/[^a-zA-Z0-9]/g,'').slice(-24).toUpperCase();localStorage.setItem(key,id)}return id}catch{return 'FID-V-'+Math.random().toString(36).slice(2,18).toUpperCase()}
-}
-async function recordFiddaVisit(){
-  try{await ensureFiddaSupabase();const result=await dbRecordVisit(fiddaGetVisitorId());if(result?.new_visit)window.dispatchEvent(new CustomEvent('fidda-visit-recorded',{detail:result}));}catch(e){console.warn('FIDDA visit:',e)}
-}
 function bootStore(){
   // صفحة الإدارة لا تحتاج تشغيل واجهة المتجر أو مؤقتات التحديث الثقيلة.
   if(location.pathname.toLowerCase().endsWith('/admin.html')) return;
@@ -280,7 +274,6 @@ function bootStore(){
   renderStoreImmediately();
   // التحديث من Supabase يحدث في الخلفية.
   if(window.fiddaDbInit)fiddaDbInit().catch(e=>console.error(e));
-  recordFiddaVisit();
   if(!storeRefreshTimer){
     storeRefreshTimer=setInterval(()=>{if(document.visibilityState==='visible')scheduleStoreRefresh()},60000);
   }
@@ -311,21 +304,12 @@ window.addEventListener('storage',e=>{
   if(e.key==='fiddaOrderStockSync_v1'&&e.newValue){try{handleAdminStockBroadcast(JSON.parse(e.newValue))}catch(err){}}
 });
 window.addEventListener('fidda-db-ready',syncVisibleStoreAfterDataRefresh);
-window.addEventListener('fidda-cache-products-changed',()=>{
-  if(location.pathname.toLowerCase().endsWith('/admin.html')){renderProductsAdmin?.();renderStats?.(readOrderCache?.()||[]);return;}
-  syncVisibleStoreAfterDataRefresh();
-});
-window.addEventListener('fidda-cache-categories-changed',()=>{
-  if(location.pathname.toLowerCase().endsWith('/admin.html')){renderCategoriesAdmin?.();renderProductsAdmin?.();fillCategories?.();return;}
-  syncVisibleStoreAfterDataRefresh();
-});
-
 const FIDDA_LIVE_SYNC_KEY='fiddaLiveSync_v2';
 function persistLiveProducts(list){
   window.FIDDA_PRODUCTS=(list||[]).map(normalizeProduct);
   try{
-    localStorage.setItem('fiddaLiveProductsCache_v7',JSON.stringify(window.FIDDA_PRODUCTS));
-    localStorage.setItem('fiddaLiveDataCacheTime_v7',String(Date.now()));
+    localStorage.setItem('fiddaProductsCache_v3',JSON.stringify(window.FIDDA_PRODUCTS));
+    localStorage.setItem('fiddaDataCacheTime_v3',String(Date.now()));
   }catch(e){}
 }
 function publishLiveProducts(list){
@@ -333,21 +317,18 @@ function publishLiveProducts(list){
   try{localStorage.setItem(FIDDA_LIVE_SYNC_KEY,JSON.stringify({type:'products',at:Date.now(),products:window.FIDDA_PRODUCTS}));}catch(e){}
   syncVisibleStoreAfterDataRefresh();
 }
-window.addEventListener('fidda-local-product-sync',event=>{
-  const p=event.detail||{};
-  if(p.type!=='product-optimistic')return;
-  if(p.eventType==='UPDATE'&&p.new){
-    const next=rowToProduct(p.new),list=getProducts(); const i=list.findIndex(x=>Number(x.id)===Number(next.id));
-    if(i>=0)list[i]=next; else list.unshift(next);
-    persistLiveProducts(list); syncVisibleStoreAfterDataRefresh();
-  }else if(p.eventType==='DELETE'&&p.old){
-    persistLiveProducts(getProducts().filter(x=>Number(x.id)!==Number(p.old.id))); syncVisibleStoreAfterDataRefresh();
-  }
+// عند تغيّر حالة أي طلب في Supabase، نعيد قراءة المنتجات فورًا.
+// هذا يوفر مسارًا فوريًا حتى لو لم يكن جدول products مضافًا إلى Realtime بعد.
+window.addEventListener('fidda-orders-changed',event=>{
+  // لا ننتظر الطلبات لإعادة قراءة products: حدث products نفسه يحدّث المخزون فور وصوله.
+  // هذا المستمع موجود فقط للتوافق مع النسخ القديمة ولا يفرض أي تأخير زمني.
 });
 window.addEventListener('fidda-live-broadcast',event=>{
   const payload=event.detail||{};
   if(payload.type==='products'||payload.type==='categories'){
     window.dispatchEvent(new CustomEvent('fidda-data-changed',{detail:{table:payload.type,eventType:payload.eventType,new:payload.new,old:payload.old,source:'broadcast'}}));
+  }else if(payload.type==='orders'){
+    window.dispatchEvent(new CustomEvent('fidda-orders-changed',{detail:{eventType:payload.eventType,new:payload.new,old:payload.old,source:'broadcast'}}));
   }
 });
 window.addEventListener('fidda-data-changed',event=>{
@@ -400,14 +381,14 @@ window.addEventListener('fidda-data-changed',event=>{
       if(idx>=0)list[idx]=next; else list.push(next);
     }
     window.FIDDA_CATEGORIES=list;
-    try{localStorage.setItem('fiddaLiveCategoriesCache_v7',JSON.stringify(list));}catch(e){}
+    try{localStorage.setItem('fiddaCategoriesCache_v3',JSON.stringify(list));}catch(e){}
     syncVisibleStoreAfterDataRefresh();
     return;
   }
   if(payload.table==='categories'&&payload.eventType==='DELETE'&&payload.old){
     const id=String(payload.old.id);
     window.FIDDA_CATEGORIES=getCategories().filter(c=>String(c.id)!==id);
-    try{localStorage.setItem('fiddaLiveCategoriesCache_v7',JSON.stringify(window.FIDDA_CATEGORIES));}catch(e){}
+    try{localStorage.setItem('fiddaCategoriesCache_v3',JSON.stringify(window.FIDDA_CATEGORIES));}catch(e){}
     syncVisibleStoreAfterDataRefresh();
     return;
   }

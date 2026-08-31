@@ -1,4 +1,4 @@
-const CACHE = "fidda-store-v6-final-instant-repaired";
+const CACHE = "fidda-store-v2-live";
 const APP_SHELL = [
   "./",
   "./index.html",

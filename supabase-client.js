@@ -122,6 +122,21 @@ function startFiddaLiveBroadcast(){
   fiddaLiveBroadcastChannel=channel;
   channel
     .on('broadcast',{event:'change'},({payload})=>dispatchFiddaLiveBroadcast(payload||{}))
+    // أحداث قاعدة البيانات المرسلة من Trigger داخل PostgreSQL.
+    // هذا المسار لا يعتمد على أن الجهاز الذي نفذ العملية هو الذي يبثها.
+    .on('broadcast',{event:'db_change'},({payload})=>{
+      const p=payload||{};
+      const eventType=String(p.eventType||p.operation||p.event||'').toUpperCase();
+      const record=p.new??p.record??p.new_record??null;
+      const oldRecord=p.old??p.old_record??null;
+      if(p.table&&eventType){
+        dispatchFiddaLiveBroadcast({
+          type:p.type||(p.table==='orders'?'orders':p.table==='products'?'products':p.table==='categories'?'categories':p.table),
+          eventType,event:eventType,new:record,old:oldRecord,
+          source:'db-broadcast',at:Date.now()
+        });
+      }
+    })
     .subscribe(status=>{
       fiddaLiveBroadcastStatus=status;
       emitFiddaRealtimeStatus('broadcast',status);
@@ -222,11 +237,7 @@ function startFiddaRealtime(){
 
         if(status==='SUBSCRIBED'){
           window.dispatchEvent(new CustomEvent('fidda-realtime-ready',{detail:{table:'products'}}));
-          // عند إعادة الاتصال قد تكون أحداث قد فاتت أثناء انقطاع الشبكة/النوم.
-          // نجري قراءة تصحيحية واحدة فقط بعد إعادة الاتصال، وليس polling.
-          if(fiddaProductsEverSubscribed){
-            setTimeout(()=>window.dispatchEvent(new CustomEvent('fidda-realtime-reconcile',{detail:{table:'products'}})),120);
-          }
+          setTimeout(()=>window.dispatchEvent(new CustomEvent('fidda-realtime-reconcile',{detail:{table:'products'}})),80);
           fiddaProductsEverSubscribed=true;
         }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
           if(fiddaProductsChannel===channel) fiddaProductsChannel=null;

@@ -90,11 +90,12 @@ async function fiddaDbInit(){
 function startFiddaRealtime(){
   if(!fiddaSupabase||fiddaProductsChannel)return;
   bindFiddaRealtimeRecovery();
-  const channel=fiddaSupabase.channel('fidda-store-products-live');
+  const channel=fiddaSupabase.channel('fidda:catalog');
   fiddaProductsChannel=channel;fiddaProductsRealtimeStatus='CONNECTING';emitFiddaRealtimeStatus('products','CONNECTING');
-  channel
-    .on('postgres_changes',{event:'*',schema:'public',table:'products'},payload=>window.dispatchEvent(new CustomEvent('fidda-data-changed',{detail:{table:'products',eventType:payload.eventType,new:payload.new,old:payload.old,source:'postgres'}})))
-    .on('postgres_changes',{event:'*',schema:'public',table:'categories'},payload=>window.dispatchEvent(new CustomEvent('fidda-data-changed',{detail:{table:'categories',eventType:payload.eventType,new:payload.new,old:payload.old,source:'postgres'}})))
+  channel.on('broadcast',{event:'catalog_change'},payload=>{
+      const p=payload?.payload||payload||{};
+      window.dispatchEvent(new CustomEvent('fidda-data-changed',{detail:{table:p.table,eventType:p.eventType||payload?.event,new:p.new,old:p.old,source:'broadcast'}}));
+    })
     .subscribe(status=>{
       fiddaProductsRealtimeStatus=status;emitFiddaRealtimeStatus('products',status);
       if(status==='SUBSCRIBED'){
@@ -126,8 +127,6 @@ function recoverFiddaRealtimeNow(){
   if(!fiddaSupabase||document.visibilityState==='hidden')return;
   try{fiddaSupabase.realtime?.connect?.()}catch(e){}
   startFiddaRealtime();
-  // قراءة تصحيحية فقط عند العودة من الخلفية أو عودة الإنترنت، وليس عند كل focus.
-  fiddaRealtimeFallbackRefresh().catch(()=>{});
 }
 function bindFiddaRealtimeRecovery(){
   if(fiddaRecoveryBound)return;fiddaRecoveryBound=true;

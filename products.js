@@ -417,8 +417,7 @@ window.addEventListener('storage',event=>{
     }
   }catch(e){}
 });
-let __lastStoreRefresh=0;
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-__lastStoreRefresh>45000){__lastStoreRefresh=Date.now();scheduleStoreRefresh()}});
+
 document.addEventListener('DOMContentLoaded',()=>{setupCheckout();bootStore()});
 
 function initOrderSuccessModal(){const m=document.getElementById('orderSuccessModal');if(!m)return;m.querySelectorAll('[data-close-success]').forEach(el=>el.addEventListener('click',()=>{m.classList.add('hidden');document.body.style.overflow='';}));document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!m.classList.contains('hidden')){m.classList.add('hidden');document.body.style.overflow=''}})}

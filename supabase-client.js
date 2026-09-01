@@ -15,10 +15,10 @@ async function ensureFiddaSupabase(){
   });
   await fiddaClientPromise; fiddaSupabase=window.supabase.createClient(FIDDA_SUPABASE_URL,FIDDA_SUPABASE_KEY); window.fiddaSupabase=fiddaSupabase; startFiddaRealtime(); return fiddaSupabase;
 }
-const FIDDA_CACHE_PRODUCTS='fiddaProductsCache_v3';
+const FIDDA_CACHE_PRODUCTS='fiddaProductsCache_v7';
 const FIDDA_CACHE_CATEGORIES='fiddaCategoriesCache_v3';
 const FIDDA_CACHE_TIME='fiddaDataCacheTime_v3';
-const FIDDA_ADMIN_CACHE_PRODUCTS='fiddaAdminProductsCache_v1';
+const FIDDA_ADMIN_CACHE_PRODUCTS='fiddaAdminProductsCache_v7';
 const FIDDA_ADMIN_CACHE_CATEGORIES='fiddaAdminCategoriesCache_v1';
 const FIDDA_ADMIN_PAGE=location.pathname.toLowerCase().endsWith('/admin.html');
 

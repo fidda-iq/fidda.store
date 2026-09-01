@@ -38,7 +38,7 @@ function applyLocalOrderStock(items,direction){
   const ids=new Set((items||[]).map(i=>Number(i.id)));
   const list=getProducts().map(p=>{const item=(items||[]).find(i=>Number(i.id)===Number(p.id));if(!item)return p;const qty=Math.max(1,Math.floor(Number(item.qty)||1));return normalizeProduct({...p,stock:Math.max(0,Number(p.stock||0)+(Number(direction)||0)*qty)});});
   window.FIDDA_PRODUCTS=list;
-  try{localStorage.setItem('fiddaProductsCache_v3',JSON.stringify(list));localStorage.setItem('fiddaDataCacheTime_v3',String(Date.now()));}catch(e){}
+  try{localStorage.setItem('fiddaProductsCache_v7',JSON.stringify(list));localStorage.setItem('fiddaDataCacheTime_v3',String(Date.now()));}catch(e){}
   syncVisibleStoreAfterDataRefresh();
 }
 function getCartItem(id){return getCart().find(i=>Number(i.id)===Number(id))}
@@ -233,7 +233,7 @@ async function refreshStoreData({quiet=true}={}){
     const nextProducts=(pr.data||[]).map(rowToProduct),nextCategories=(cr.data||[]).map(rowToCategory);
     const oldP=JSON.stringify(window.FIDDA_PRODUCTS||[]),oldC=JSON.stringify(window.FIDDA_CATEGORIES||[]);
     window.FIDDA_PRODUCTS=nextProducts;window.FIDDA_CATEGORIES=nextCategories;window.FIDDA_DB_READY=true;
-    try{localStorage.setItem('fiddaProductsCache_v3',JSON.stringify(nextProducts));localStorage.setItem('fiddaCategoriesCache_v3',JSON.stringify(nextCategories));localStorage.setItem('fiddaDataCacheTime_v3',String(Date.now()))}catch(e){}
+    try{localStorage.setItem('fiddaProductsCache_v7',JSON.stringify(nextProducts));localStorage.setItem('fiddaCategoriesCache_v3',JSON.stringify(nextCategories));localStorage.setItem('fiddaDataCacheTime_v3',String(Date.now()))}catch(e){}
     __lastStoreRefresh=Date.now();
     if(oldP!==JSON.stringify(nextProducts)||oldC!==JSON.stringify(nextCategories))syncVisibleStoreAfterDataRefresh();
     return true;
@@ -317,7 +317,7 @@ const FIDDA_LIVE_SYNC_KEY='fiddaLiveSync_v2';
 function persistLiveProducts(list){
   window.FIDDA_PRODUCTS=(list||[]).map(normalizeProduct);
   try{
-    localStorage.setItem('fiddaProductsCache_v3',JSON.stringify(window.FIDDA_PRODUCTS));
+    localStorage.setItem('fiddaProductsCache_v7',JSON.stringify(window.FIDDA_PRODUCTS));
     localStorage.setItem('fiddaDataCacheTime_v3',String(Date.now()));
   }catch(e){}
 }

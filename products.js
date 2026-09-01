@@ -208,7 +208,9 @@ function setupCheckout(){
     }catch(err){
       console.error(err);
       // لم يتم تثبيت الطلب، لذلك لا نلمس المخزون المحلي إطلاقًا.
-      showToast(String(err?.message||'').includes('غير متوفرة')?'الكمية لم تعد متوفرة حدّث السلة وحاول مرة أخرى':'تعذر إرسال الطلب. حاول مرة أخرى','error');
+      const msg=String(err?.message||'');
+      console.error('FIDDA create order failed:',err);
+      showToast(msg.includes('غير متوفرة')?'الكمية لم تعد متوفرة حدّث السلة وحاول مرة أخرى':(msg.includes('رقم الهاتف')?'رقم الهاتف غير صالح. تحقق منه وحاول مرة أخرى':'تعذر إرسال الطلب. تحقق من الاتصال وحاول مرة أخرى'),'error');
       if(button){button.disabled=false;button.textContent=button.dataset.original||'تأكيد الطلب'}
     }
   })

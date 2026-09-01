@@ -202,7 +202,8 @@ function setupCheckout(){
     // إنقاص المخزون يتم فقط داخل create_order عند تثبيت الطلب بنجاح.
     try{
       const result=await dbCreateOrder(customer,items,t.subtotal,t.delivery,t.total);
-      notifyFiddaNewOrder(result.id);
+      // الإشعار منفصل عن تثبيت الطلب؛ فشل الإشعار لا يجعل الطلب يبدو فاشلًا.
+      notifyFiddaNewOrder(result.id).catch(()=>{});
       localStorage.removeItem(CART_KEY);updateCartCount();f.classList.add('hidden');const success=document.getElementById('orderSuccess');success.classList.remove('hidden');success.innerHTML=`<div class="success-icon">✓</div><p class="eyebrow">ORDER CONFIRMED</p><h2>تم استلام طلبك بنجاح</h2><p>رقم الطلب: <b>${escapeHtml(result.id)}</b></p><p>الإجمالي: <b>${formatPrice(t.total)}</b> شامل التوصيل.</p><p>سنتواصل معك لتأكيد الطلب وتجهيزه.</p>`;const modal=document.getElementById('orderSuccessModal');const details=document.getElementById('successDetails');if(modal&&details){details.className='success-details';details.innerHTML=`<div class="detail-row"><span>رقم الطلب</span><b>${escapeHtml(result.id)}</b></div><div class="detail-row"><span>الإجمالي</span><b>${formatPrice(t.total)} شامل التوصيل</b></div>`;modal.classList.remove('hidden');document.body.style.overflow='hidden';}refreshStoreData().catch(e=>console.error('Background store refresh:',e));
     }catch(err){
       console.error(err);

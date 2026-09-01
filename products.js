@@ -224,7 +224,7 @@ function setupCheckout(){
 
 function initReveal(){const els=document.querySelectorAll('.reveal:not([data-reveal-bound])');if(!('IntersectionObserver' in window)){els.forEach(e=>e.classList.add('revealed'));return}const observer=new IntersectionObserver(entries=>entries.forEach(x=>{if(x.isIntersecting){x.target.classList.add('revealed');observer.unobserve(x.target)}}),{threshold:.08});els.forEach(e=>{e.dataset.revealBound='1';observer.observe(e)})}
 
-let storeRefreshTimer=null,storeRefreshBusy=false;
+let storeRefreshBusy=false;
 async function refreshStoreData({quiet=true}={}){
   if(!window.fiddaSupabase||storeRefreshBusy)return false;storeRefreshBusy=true;
   try{
@@ -273,7 +273,7 @@ function scheduleStoreRefresh(){
 }
 function bootStore(){
   // صفحة الإدارة لا تحتاج تشغيل واجهة المتجر أو مؤقتات التحديث الثقيلة.
-  if(location.pathname.toLowerCase().endsWith('/admin.html')) return;
+  if(document.body?.classList.contains('admin-body') || location.pathname.toLowerCase().endsWith('/admin.html')) return;
   // لا ننتظر الشبكة إطلاقًا: الواجهة والسلة تظهر من الذاكرة/الكاش فورًا.
   const CART_RESET_VERSION='fidda-cart-reset-v3';
   if(localStorage.getItem(CART_RESET_VERSION)!=='1'){
@@ -283,9 +283,6 @@ function bootStore(){
   renderStoreImmediately();
   // التحديث من Supabase يحدث في الخلفية.
   if(window.fiddaDbInit)fiddaDbInit().catch(e=>console.error(e));
-  if(!storeRefreshTimer){
-    storeRefreshTimer=setInterval(()=>{if(document.visibilityState==='visible')scheduleStoreRefresh()},60000);
-  }
 }
 window.addEventListener('fidda-cart-changed',()=>{updateCartCount();updateAllCustomerStockUI();updateCartSummary();updateDetailQuantity(window.__detailProductId);if(document.getElementById('orderSummary'))renderCheckout()});
 
@@ -313,6 +310,11 @@ window.addEventListener('storage',e=>{
   if(e.key==='fiddaOrderStockSync_v1'&&e.newValue){try{handleAdminStockBroadcast(JSON.parse(e.newValue))}catch(err){}}
 });
 window.addEventListener('fidda-db-ready',syncVisibleStoreAfterDataRefresh);
+// تصحيح لحظي واحد بعد إعادة اتصال Realtime فقط؛ لا يوجد polling دوري.
+window.addEventListener('fidda-realtime-reconcile',event=>{
+  const table=event.detail?.table;
+  if(table==='products' && !document.body?.classList.contains('admin-body')) refreshStoreData({quiet:true}).catch(()=>{});
+});
 const FIDDA_LIVE_SYNC_KEY='fiddaLiveSync_v2';
 function persistLiveProducts(list){
   window.FIDDA_PRODUCTS=(list||[]).map(normalizeProduct);

@@ -20,7 +20,7 @@ const FIDDA_CACHE_CATEGORIES='fiddaCategoriesCache_v3';
 const FIDDA_CACHE_TIME='fiddaDataCacheTime_v3';
 const FIDDA_ADMIN_CACHE_PRODUCTS='fiddaAdminProductsCache_v7';
 const FIDDA_ADMIN_CACHE_CATEGORIES='fiddaAdminCategoriesCache_v1';
-const FIDDA_ADMIN_PAGE=location.pathname.toLowerCase().endsWith('/admin.html');
+const FIDDA_ADMIN_PAGE=!!document.body?.classList.contains('admin-body') || location.pathname.toLowerCase().endsWith('/admin.html');
 
 function fiddaReadCache(){try{const pk=FIDDA_ADMIN_PAGE?FIDDA_ADMIN_CACHE_PRODUCTS:FIDDA_CACHE_PRODUCTS;const ck=FIDDA_ADMIN_PAGE?FIDDA_ADMIN_CACHE_CATEGORIES:FIDDA_CACHE_CATEGORIES;const p=JSON.parse(localStorage.getItem(pk)||'[]');const c=JSON.parse(localStorage.getItem(ck)||'[]');if(Array.isArray(p)&&p.length){window.FIDDA_PRODUCTS=p;window.FIDDA_CATEGORIES=Array.isArray(c)?c:[];return true}}catch(e){}return false}
 function fiddaWriteCache(products,categories){try{const pk=FIDDA_ADMIN_PAGE?FIDDA_ADMIN_CACHE_PRODUCTS:FIDDA_CACHE_PRODUCTS;const ck=FIDDA_ADMIN_PAGE?FIDDA_ADMIN_CACHE_CATEGORIES:FIDDA_CACHE_CATEGORIES;localStorage.setItem(pk,JSON.stringify(products));localStorage.setItem(ck,JSON.stringify(categories));if(!FIDDA_ADMIN_PAGE)localStorage.setItem(FIDDA_CACHE_TIME,String(Date.now()))}catch(e){}}
@@ -101,8 +101,9 @@ let fiddaOrdersChannel=null;
 let fiddaProductsRealtimeStatus='DISCONNECTED';
 let fiddaOrdersRealtimeStatus='DISCONNECTED';
 let fiddaRealtimeReconnectTimer=null;
-let fiddaRealtimeFallbackTimer=null;
 let fiddaLiveBroadcastChannel=null;
+let fiddaProductsEverSubscribed=false;
+let fiddaOrdersEverSubscribed=false;
 let fiddaLiveBroadcastStatus='DISCONNECTED';
 const FIDDA_LIVE_BROADCAST_CHANNEL='fidda-live-broadcast-v1';
 
@@ -169,6 +170,11 @@ function startFiddaOrdersRealtime(){
 
         if(status==='SUBSCRIBED'){
           window.dispatchEvent(new CustomEvent('fidda-realtime-ready',{detail:{table:'orders'}}));
+          // تصحيح واحد فقط بعد إعادة الاتصال لضمان عدم فقدان طلب أثناء انقطاع WebSocket.
+          if(fiddaOrdersEverSubscribed){
+            setTimeout(()=>window.dispatchEvent(new CustomEvent('fidda-realtime-reconcile',{detail:{table:'orders'}})),120);
+          }
+          fiddaOrdersEverSubscribed=true;
         }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
           if(fiddaOrdersChannel===channel) fiddaOrdersChannel=null;
           setTimeout(()=>startFiddaOrdersRealtime(),1500);
@@ -216,6 +222,12 @@ function startFiddaRealtime(){
 
         if(status==='SUBSCRIBED'){
           window.dispatchEvent(new CustomEvent('fidda-realtime-ready',{detail:{table:'products'}}));
+          // عند إعادة الاتصال قد تكون أحداث قد فاتت أثناء انقطاع الشبكة/النوم.
+          // نجري قراءة تصحيحية واحدة فقط بعد إعادة الاتصال، وليس polling.
+          if(fiddaProductsEverSubscribed){
+            setTimeout(()=>window.dispatchEvent(new CustomEvent('fidda-realtime-reconcile',{detail:{table:'products'}})),120);
+          }
+          fiddaProductsEverSubscribed=true;
         }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
           if(fiddaProductsChannel===channel) fiddaProductsChannel=null;
           scheduleFiddaRealtimeReconnect();
@@ -236,15 +248,6 @@ function startFiddaRealtime(){
 
   startFiddaOrdersRealtime();
   fiddaRealtimeStarted=true;
-
-  // مزامنة احتياطية فقط عند انقطاع Realtime. عند الاتصال الطبيعي تعتمد المزامنة على الأحداث اللحظية.
-  if(!fiddaRealtimeFallbackTimer){
-    fiddaRealtimeFallbackTimer=setInterval(()=>{
-      if(document.visibilityState==='hidden')return;
-      const live=fiddaProductsRealtimeStatus==='SUBSCRIBED';
-      if(!live) fiddaRealtimeFallbackRefresh().catch(()=>{});
-    },3500);
-  }
 }
 
 let fiddaRecoveryBound=false;

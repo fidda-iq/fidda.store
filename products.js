@@ -182,7 +182,7 @@ async function notifyFiddaNewOrder(orderId){
   if(!orderId)return;
   try{
     const endpoint=`${FIDDA_SUPABASE_URL}/functions/v1/notify-new-order`;
-    await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','apikey':FIDDA_SUPABASE_KEY,'Authorization':`Bearer ${FIDDA_SUPABASE_KEY}`},body:JSON.stringify({order_id:String(orderId)})});
+    await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','apikey':FIDDA_SUPABASE_KEY,'Authorization':`Bearer ${FIDDA_SUPABASE_KEY}`,'X-FIDDA-PUSH-TOKEN':'bMDnTtpyDEGfRZxkGPqIANrWZumUyv_U606JKyC6frk'},body:JSON.stringify({order_id:String(orderId)})});
   }catch(e){console.warn('FIDDA push notification:',e)}
 }
 
@@ -206,11 +206,17 @@ function setupCheckout(){
       notifyFiddaNewOrder(result.id).catch(()=>{});
       localStorage.removeItem(CART_KEY);updateCartCount();f.classList.add('hidden');const success=document.getElementById('orderSuccess');success.classList.remove('hidden');success.innerHTML=`<div class="success-icon">✓</div><p class="eyebrow">ORDER CONFIRMED</p><h2>تم استلام طلبك بنجاح</h2><p>رقم الطلب: <b>${escapeHtml(result.id)}</b></p><p>الإجمالي: <b>${formatPrice(t.total)}</b> شامل التوصيل.</p><p>سنتواصل معك لتأكيد الطلب وتجهيزه.</p>`;const modal=document.getElementById('orderSuccessModal');const details=document.getElementById('successDetails');if(modal&&details){details.className='success-details';details.innerHTML=`<div class="detail-row"><span>رقم الطلب</span><b>${escapeHtml(result.id)}</b></div><div class="detail-row"><span>الإجمالي</span><b>${formatPrice(t.total)} شامل التوصيل</b></div>`;modal.classList.remove('hidden');document.body.style.overflow='hidden';}refreshStoreData().catch(e=>console.error('Background store refresh:',e));
     }catch(err){
-      console.error(err);
-      // لم يتم تثبيت الطلب، لذلك لا نلمس المخزون المحلي إطلاقًا.
-      const msg=String(err?.message||'');
       console.error('FIDDA create order failed:',err);
-      showToast(msg.includes('غير متوفرة')?'الكمية لم تعد متوفرة حدّث السلة وحاول مرة أخرى':(msg.includes('رقم الهاتف')?'رقم الهاتف غير صالح. تحقق منه وحاول مرة أخرى':'تعذر إرسال الطلب. تحقق من الاتصال وحاول مرة أخرى'),'error');
+      // لم يتم تثبيت الطلب، لذلك لا نلمس المخزون المحلي.
+      const msg=String(err?.message||err?.details||err?.hint||'');
+      const code=String(err?.code||'');
+      let userMsg='تعذر إرسال الطلب. حاول مرة أخرى.';
+      if(msg.includes('غير متوفرة')) userMsg='الكمية لم تعد متوفرة. حدّث السلة وحاول مرة أخرى';
+      else if(msg.includes('رقم الهاتف')) userMsg='رقم الهاتف غير صالح. تحقق منه وحاول مرة أخرى';
+      else if(/Failed to fetch|NetworkError|fetch/i.test(msg)) userMsg='تعذر الاتصال بالخادم. تأكد من الاتصال بالإنترنت وحاول مرة أخرى';
+      else if(msg) userMsg=`تعذر إرسال الطلب: ${msg}`;
+      console.error('FIDDA create order error code:',code,'message:',msg);
+      showToast(userMsg,'error');
       if(button){button.disabled=false;button.textContent=button.dataset.original||'تأكيد الطلب'}
     }
   })

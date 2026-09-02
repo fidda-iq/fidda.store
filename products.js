@@ -23,7 +23,8 @@ function normalizeProduct(p){
   const stock=sizes.length?sizeStock:baseStock;
   return {...p,stock,sizes,images:(Array.isArray(p?.images)&&p.images.length?p.images:[p?.image||'']).filter(Boolean),material:p?.material||'فضة',payment:p?.payment||'الدفع عند الاستلام',customFields:Array.isArray(p?.customFields)?p.customFields.filter(x=>x&&String(x.label||'').trim()&&String(x.value||'').trim()).map(x=>({label:String(x.label).trim(),value:String(x.value).trim()})):[]};
 }
-function productHasSizes(p){return Array.isArray(p?.sizes)&&p.sizes.length>0}
+function isRingCategory(p){const c=String(p?.category??'').replace(/\s+/g,'').trim();return c.includes('خواتم')||c.includes('خاتم')}
+function productHasSizes(p){return isRingCategory(p)&&Array.isArray(p?.sizes)&&p.sizes.length>0}
 function getSizeStock(p,size){const key=String(size??'').trim();if(!productHasSizes(p))return Math.max(0,Math.floor(Number(p?.stock)||0));return Math.max(0,Math.floor(Number(p.sizes.find(x=>String(x.size)===key)?.stock)||0))}
 function getCartSizeQty(id,size){return getCart().filter(i=>Number(i.id)===Number(id)&&String(i.size||'')===String(size||'')).reduce((a,i)=>a+(Number(i.qty)||0),0)}
 function getVisibleSizeStock(p,size){return Math.max(0,getSizeStock(p,size)-getCartSizeQty(p?.id,size))}

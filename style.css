@@ -1906,3 +1906,5 @@ body{padding-top:0!important}
   pointer-events:auto!important;
   cursor:pointer!important;
 }
+
+.size-selector{margin:18px 0 8px}.size-selector-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:9px}.size-selector-head span{font-weight:700;font-size:13px}.size-selector-head small{color:#888;font-size:10px}.size-options{display:flex;gap:9px;overflow-x:auto;padding:3px 2px 8px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:thin}.size-option{flex:0 0 auto;min-width:82px;padding:10px 14px;border-radius:12px;border:1px solid currentColor;background:#fff;font:inherit;font-size:11px;font-weight:700;cursor:pointer;scroll-snap-align:start;transition:.22s}.size-option.available{color:#25a85a;background:rgba(37,168,90,.08)}.size-option.unavailable{color:#d83b3b;background:rgba(216,59,59,.07);cursor:not-allowed}.size-option.selected{box-shadow:0 0 0 2px currentColor,0 4px 12px rgba(0,0,0,.08);transform:translateY(-1px)}.cart-item-size{display:inline-flex;margin-top:4px;color:#777;font-size:11px;font-weight:700}

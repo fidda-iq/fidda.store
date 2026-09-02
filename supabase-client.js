@@ -135,8 +135,8 @@ function bindFiddaRealtimeRecovery(){
 }
 
 function readLocalArray(k){try{const x=localStorage.getItem(k);return x?JSON.parse(x):[]}catch(e){return[]}}
-function productToRow(p){return {id:Number(p.id),name:p.name,category:p.category,price:Number(p.price)||0,description:p.desc||'',material:p.material||'فضة',payment:p.payment||'الدفع عند الاستلام',images:Array.isArray(p.images)?p.images:[],stock:Math.max(0,Number(p.stock)||0),custom_fields:Array.isArray(p.customFields)?p.customFields:[],featured:!!p.featured}}
-function rowToProduct(r){return normalizeProduct({id:Number(r.id),name:r.name,category:r.category,price:r.price,desc:r.description,material:r.material,payment:r.payment,images:r.images||[],stock:r.stock,customFields:r.custom_fields||[],featured:r.featured})}
+function productToRow(p){return {id:Number(p.id),name:p.name,category:p.category,price:Number(p.price)||0,description:p.desc||'',material:p.material||'فضة',payment:p.payment||'الدفع عند الاستلام',images:Array.isArray(p.images)?p.images:[],stock:Math.max(0,Number(p.stock)||0),custom_fields:Array.isArray(p.customFields)?p.customFields:[],featured:!!p.featured,sizes:Array.isArray(p.sizes)?p.sizes:[]}}
+function rowToProduct(r){return normalizeProduct({id:Number(r.id),name:r.name,category:r.category,price:r.price,desc:r.description,material:r.material,payment:r.payment,images:r.images||[],stock:r.stock,customFields:r.custom_fields||[],featured:r.featured,sizes:Array.isArray(r.sizes)?r.sizes:[]})}
 function categoryToRow(c){return {id:String(c.id),name:c.name,image:c.image||'',sort_order:0}}
 function rowToCategory(r){return {id:String(r.id),name:r.name,image:r.image||''}}
 async function dbGetProduct(id){const db=await ensureFiddaSupabase();const {data,error}=await db.from('products').select('*').eq('id',id).single();if(error)throw error;return rowToProduct(data)}

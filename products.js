@@ -121,7 +121,7 @@ function updateCartSummary(){const t=cartTotals();const s=document.getElementByI
 function sizeSelectorMarkup(p){if(!isRingCategory(p))return '';if(!productHasSizes(p))return `<div id="ringSizes" class="size-selector size-selector-empty" data-size-selector="${p.id}"><div class="size-selector-head"><span>Size:</span><small>قياسات الخاتم</small></div><div class="size-empty-note">لا توجد قياسات مضافة لهذا الخاتم بعد</div></div>`;return `<div id="ringSizes" class="size-selector" data-size-selector="${p.id}"><div class="size-selector-head"><span>Size:</span><small>اختر القياس</small></div><div class="size-options">${p.sizes.map(x=>{const av=getVisibleSizeStock(p,x.size)>0;return `<button type="button" class="size-option ${av?'available':'unavailable'}" data-size-product="${p.id}" data-size-value="${escapeHtml(x.size)}" ${av?'':'disabled'}>Size: ${escapeHtml(x.size)}</button>`}).join('')}</div></div>`}
 function stockMarkup(p,featured=false){const visible=getCustomerVisibleStock(p);return `<span data-stock-product="${p.id}" class="stock-badge ${featured?'featured-stock ':''}${visible>0?'available':'unavailable'}">${visible>0?`متوفر <b class="stock-number">${visible}</b> قطعة`:'غير متوفر'}</span>`}
 function bagIcon(){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 8.5h11l.8 11H5.7l.8-11Z"></path><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"></path><path d="M9 12.5v2M15 12.5v2"></path></svg>'}
-function productCard(p,featured=false){const img=productImages(p)[0]||'',ring=isRingCategory(p),out=ring?getRingTotalVisibleStock(p)<=0:getRemainingAddableStock(p)<=0,multi=productImages(p).length>1;const action=ring?`location.href='product.html?id=${encodeURIComponent(p.id)}#ringSizes'`:`addToCart(${Number(p.id)},1)`;const actionLabel=ring?'عرض القياسات':'إضافة '+escapeHtml(p.name)+' إلى السلة';return `<article class="product-card reveal ${out?'out-of-stock':''}"><a href="product.html?id=${encodeURIComponent(p.id)}" class="product-image"><img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" loading="lazy"><span class="product-category">${escapeHtml(p.category)}</span>${multi?`<span class="image-count">◈ ${productImages(p).length}</span>`:''}</a><div class="product-info"><a href="product.html?id=${encodeURIComponent(p.id)}"><h3>${escapeHtml(p.name)}</h3></a>${stockMarkup(p,featured)}<div class="product-bottom"><strong>${formatPrice(p.price)}</strong><button class="add-btn ${ring?'ring-action':''}" data-add-product="${p.id}" ${out?'disabled':''} onclick="event.preventDefault();${action}" aria-label="${actionLabel}" title="${actionLabel}">${ring?'Size':bagIcon()}</button></div></div></article>`}
+function productCard(p,featured=false){const img=productImages(p)[0]||'',ring=isRingCategory(p),out=ring?getRingTotalVisibleStock(p)<=0:getRemainingAddableStock(p)<=0,multi=productImages(p).length>1;const action=ring?`location.href='product.html?id=${encodeURIComponent(p.id)}#ringSizes'`:`addToCart(${Number(p.id)},1)`;const actionLabel=ring?'عرض القياسات':'إضافة '+escapeHtml(p.name)+' إلى السلة';const actionMarkup=ring?`<a class="add-btn ring-action" href="product.html?id=${encodeURIComponent(p.id)}#ringSizes" aria-label="${actionLabel}" title="${actionLabel}"><span class="ring-size-label">Size</span></a>`:`<button class="add-btn" data-add-product="${p.id}" ${out?'disabled':''} onclick="event.preventDefault();${action}" aria-label="${actionLabel}" title="${actionLabel}">${bagIcon()}</button>`;return `<article class="product-card reveal ${out?'out-of-stock':''}"><a href="product.html?id=${encodeURIComponent(p.id)}" class="product-image"><img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" loading="lazy"><span class="product-category">${escapeHtml(p.category)}</span>${multi?`<span class="image-count">◈ ${productImages(p).length}</span>`:''}</a><div class="product-info"><a href="product.html?id=${encodeURIComponent(p.id)}"><h3>${escapeHtml(p.name)}</h3></a>${stockMarkup(p,featured)}<div class="product-bottom"><strong>${formatPrice(p.price)}</strong>${actionMarkup}</div></div></article>`}
 function renderProducts(list,id){const el=document.getElementById(id);if(!el)return;const featured=id==='featuredProducts';el.classList.toggle('featured-grid',featured);el.innerHTML=(list||[]).length?(list||[]).map(p=>productCard(p,featured)).join(''):'<div class="fidda-coming-soon">قريباً...</div>';initReveal();updateAllCustomerStockUI()}
 function renderRelatedProducts(currentId){const el=document.getElementById('relatedProducts');const section=document.getElementById('relatedProductsSection');if(!el)return;const current=getProducts().find(p=>Number(p.id)===Number(currentId));if(!current){if(section)section.classList.add('hidden');return}const all=getProducts().filter(p=>Number(p.id)!==Number(currentId));const sameCategory=all.filter(p=>p.category===current.category);const others=all.filter(p=>p.category!==current.category);const list=[...sameCategory,...others].slice(0,4);if(!list.length){el.innerHTML='';if(section)section.classList.add('hidden');return}if(section)section.classList.remove('hidden');el.innerHTML=list.map(productCard).join('');initReveal();updateAllCustomerStockUI()}
 
@@ -277,13 +277,6 @@ function scheduleStoreRefresh(){
     await refreshStoreData();
   });
 }
-function ensureStoreLoader(){
-  if(document.getElementById('fiddaPageLoader'))return document.getElementById('fiddaPageLoader');
-  const loader=document.createElement('div');loader.id='fiddaPageLoader';loader.className='fidda-page-loader';loader.innerHTML='<div class="fidda-loader-card"><div class="fidda-loader-ring"></div><div class="fidda-loader-text">جار التحميل...</div></div>';
-  document.body.appendChild(loader);return loader;
-}
-function hideStoreLoader(){const loader=document.getElementById('fiddaPageLoader');if(!loader)return;loader.classList.add('is-hidden');setTimeout(()=>loader.remove(),360)}
-
 function bootStore(){
   // صفحة الإدارة لا تحتاج تشغيل واجهة المتجر أو مؤقتات التحديث الثقيلة.
   if(document.body?.classList.contains('admin-body') || location.pathname.toLowerCase().endsWith('/admin.html')) return;
@@ -293,11 +286,9 @@ function bootStore(){
     localStorage.removeItem(CART_KEY);
     localStorage.setItem(CART_RESET_VERSION,'1');
   }
-  const loader=ensureStoreLoader();
-  const loaderStarted=Date.now();
+  // مؤشرات التحميل أصبحت داخل أماكن العناصر نفسها، وليست طبقة فوق الصفحة.
+  // عند تنفيذ render* يتم استبدال المؤشر مباشرة بالعناصر الفعلية.
   renderStoreImmediately();
-  const hide=()=>{const wait=Math.max(220,420-(Date.now()-loaderStarted));setTimeout(hideStoreLoader,wait)};
-  requestAnimationFrame(hide);
   // التحديث من Supabase يحدث في الخلفية.
   if(window.fiddaDbInit)fiddaDbInit().catch(e=>console.error(e));
 }

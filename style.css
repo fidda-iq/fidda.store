@@ -1994,3 +1994,16 @@ body.lightbox-open{overflow:hidden}
 #ringSizes{scroll-margin-top:110px;}
 .size-selector{position:relative;}
 @media(max-width:560px){.product-card .ring-action{min-width:62px;height:40px;border-radius:13px!important;font-size:12px;}}
+
+
+/* ===== FIDDA V34: inline loading + guaranteed ring Size CTA ===== */
+.fidda-inline-loader{grid-column:1/-1;min-height:150px;display:flex;align-items:center;justify-content:center;gap:10px;color:#555;background:rgba(255,255,255,.72);border:1px dashed #d7d7d2;border-radius:22px;padding:24px;box-sizing:border-box;font-size:12px;font-weight:700;backdrop-filter:blur(4px);}
+.fidda-inline-spinner{width:20px;height:20px;border-radius:50%;border:2px solid #ddd;border-top-color:#222;animation:fiddaInlineSpin .7s linear infinite;flex:0 0 auto;}
+@keyframes fiddaInlineSpin{to{transform:rotate(360deg)}}
+.product-detail > .fidda-inline-loader{min-height:360px;}
+#cartPage > .fidda-inline-loader,#orderSummary > .fidda-inline-loader{min-height:180px;}
+.product-card .ring-action{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:64px!important;min-width:64px!important;height:42px!important;padding:0 12px!important;box-sizing:border-box!important;border-radius:14px!important;border:1px solid rgba(40,150,90,.5)!important;background:rgba(40,150,90,.10)!important;color:#238b52!important;text-decoration:none!important;font-size:12px!important;font-weight:800!important;line-height:1!important;opacity:1!important;visibility:visible!important;}
+.product-card .ring-action .ring-size-label{display:block!important;color:#238b52!important;font-size:12px!important;font-weight:800!important;line-height:1!important;visibility:visible!important;opacity:1!important;}
+.product-card .ring-action:hover{background:#238b52!important;color:#fff!important;transform:translateY(-1px);}
+.product-card .ring-action:hover .ring-size-label{color:#fff!important;}
+@media(max-width:560px){.fidda-inline-loader{min-height:120px;border-radius:18px;font-size:11px}.product-detail > .fidda-inline-loader{min-height:260px}.product-card .ring-action{width:62px!important;min-width:62px!important;height:40px!important;border-radius:13px!important;}.product-card .ring-action .ring-size-label{font-size:12px!important;}}

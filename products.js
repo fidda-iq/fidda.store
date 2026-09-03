@@ -102,7 +102,14 @@ function updateCustomerStockUI(id,productOverride=null){
     el.className=`stock-badge ${available?'available':'unavailable'}`;
     el.innerHTML=available?`<i class="stock-dot"></i>متوفر <b class="stock-number">${visible}</b> قطعة`:`<i class="stock-dot"></i>غير متوفر`;
   });
-  document.querySelectorAll(`[data-add-product="${CSS.escape(String(id))}"]`).forEach(btn=>{const ring=isRingCategory(p);const canAdd=ring?getRingTotalVisibleStock(p)>0:available;btn.disabled=!canAdd;btn.classList.toggle('disabled',!canAdd)});
+  document.querySelectorAll(`[data-add-product="${CSS.escape(String(id))}"]`).forEach(btn=>{
+    // لا نعطّل زر السلة بعد أول ضغطة؛ addToCart هو المسؤول عن فحص المخزون في كل ضغطة.
+    // إبقاء الزر قابلاً للنقر يمنع توقف الإضافة عند القطعة الأولى بسبب تحديث واجهة المخزون.
+    const canAdd=!isRingCategory(p) && available;
+    btn.disabled=false;
+    btn.classList.toggle('disabled',!canAdd);
+    btn.setAttribute('aria-disabled',canAdd?'false':'true');
+  });
   const detail=document.getElementById('detailStock');
   if(detail&&Number(detail.dataset.productId)===Number(id)){
     const selected=String(window.__detailSelectedSize||'');
@@ -116,10 +123,14 @@ function updateAllCustomerStockUI(){const products=getProducts();products.forEac
 function addToCart(id,qty=1,size=''){
   const p=getProducts().find(x=>sameProductId(x.id,id));if(!p)return false;const selectedSize=String(size||'').trim();
   if(productHasSizes(p)&&!selectedSize){showToast('اختر القياس أولاً','error');return false}
-  const available=getRemainingAddableStock(p,selectedSize),requested=Math.max(1,Math.floor(Number(qty)||1));
+  const requested=Math.max(1,Math.floor(Number(qty)||1));
+  // اقرأ السلة والمخزون لحظة الضغط، حتى تعمل الضغطة الأولى والثانية والثالثة بنفس الطريقة.
+  const cart=getCart();
+  const item=cart.find(i=>sameProductId(i.id,p.id)&&String(i.size||'')===selectedSize);
+  const currentQty=item?Math.max(0,Math.floor(Number(item.qty)||0)):0;
+  const available=Math.max(0,getRemainingAddableStock(p,selectedSize));
   if(available<requested){showToast(available?`المتاح${selectedSize?` من القياس ${selectedSize}`:''}: ${available} قطعة`:'هذه القطعة غير متوفرة','error');return false}
-  const cart=getCart(),item=getCartItem(p.id,selectedSize);
-  if(item) item.qty=Math.max(0,Number(item.qty)||0)+requested;
+  if(item) item.qty=currentQty+requested;
   else cart.push({id:p.id,qty:requested,...(selectedSize?{size:selectedSize}:{})});
   saveCart(cart);
   updateCartCount();
@@ -456,14 +467,12 @@ function bindStoreCartActions(){
   window.__fiddaCartActionsBound=true;
   document.addEventListener('click',event=>{
     const btn=event.target.closest?.('[data-add-product]');
-    if(!btn||btn.disabled)return;
-    if(btn.dataset.addBusy==='1')return;
-    btn.dataset.addBusy='1';
+    if(!btn)return;
     event.preventDefault();
     event.stopPropagation();
     const id=btn.getAttribute('data-add-product');
+    // كل ضغطة هي عملية مستقلة. لا يوجد قفل يمنع الضغطة التالية.
     addToCart(id,1);
-    requestAnimationFrame(()=>{btn.dataset.addBusy='0';});
   },true);
 }
 document.addEventListener('DOMContentLoaded',()=>{setupCheckout();bindStoreCartActions();bootStore()});

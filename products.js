@@ -29,9 +29,12 @@ function getSizeStock(p,size){const key=String(size??'').trim();if(!productHasSi
 function getCartSizeQty(id,size){return getCart().filter(i=>Number(i.id)===Number(id)&&String(i.size||'')===String(size||'')).reduce((a,i)=>a+(Number(i.qty)||0),0)}
 function getVisibleSizeStock(p,size){return Math.max(0,getSizeStock(p,size)-getCartSizeQty(p?.id,size))}
 function getRingTotalVisibleStock(p){if(!isRingCategory(p))return 0;return (Array.isArray(p?.sizes)?p.sizes:[]).reduce((a,x)=>a+getVisibleSizeStock(p,x.size),0)}
-function getProducts(){return (window.FIDDA_PRODUCTS||DEFAULT_PRODUCTS).map(normalizeProduct).sort((a,b)=>{const ao=Number.isFinite(Number(a.sort_order))?Number(a.sort_order):0,bo=Number.isFinite(Number(b.sort_order))?Number(b.sort_order):0;return ao-bo || Number(a.id)-Number(b.id)})}
+let __fiddaProductsSource=null,__fiddaProductsCache=null,__fiddaProductsRevision=0,__fiddaProductsCacheRevision=-1;
+function invalidateProductsCache(){__fiddaProductsRevision++}
+function setProductsState(list){window.FIDDA_PRODUCTS=Array.isArray(list)?list:[];invalidateProductsCache();return window.FIDDA_PRODUCTS}
+function getProducts(){const source=Array.isArray(window.FIDDA_PRODUCTS)?window.FIDDA_PRODUCTS:DEFAULT_PRODUCTS;if(source===__fiddaProductsSource&&__fiddaProductsCache&&__fiddaProductsCacheRevision===__fiddaProductsRevision)return __fiddaProductsCache;__fiddaProductsSource=source;__fiddaProductsCache=source.map(normalizeProduct).sort((a,b)=>{const ao=Number.isFinite(Number(a.sort_order))?Number(a.sort_order):0,bo=Number.isFinite(Number(b.sort_order))?Number(b.sort_order):0;return ao-bo || Number(a.id)-Number(b.id)});__fiddaProductsCacheRevision=__fiddaProductsRevision;return __fiddaProductsCache}
 function getCategories(){return window.FIDDA_CATEGORIES||DEFAULT_CATEGORIES}
-function saveProducts(x){window.FIDDA_PRODUCTS=(x||[]).map(normalizeProduct);return window.FIDDA_PRODUCTS}
+function saveProducts(x){return setProductsState((x||[]).map(normalizeProduct))}
 function saveCategories(x){window.FIDDA_CATEGORIES=x||[];return window.FIDDA_CATEGORIES}
 function formatPrice(n){return new Intl.NumberFormat('ar-IQ').format(Number(n)||0)+' د.ع'}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
@@ -47,7 +50,7 @@ function broadcastOptimisticOrderStock(items,mode='reserve',token=''){
 function applyLocalOrderStock(items,direction){
   const ids=new Set((items||[]).map(i=>Number(i.id)));
   const list=getProducts().map(p=>{const matches=(items||[]).filter(i=>Number(i.id)===Number(p.id));if(!matches.length)return p;let next={...p};for(const item of matches){const qty=Math.max(1,Math.floor(Number(item.qty)||1));const size=String(item.size||'');if(productHasSizes(p)&&size){next.sizes=(next.sizes||[]).map(x=>String(x.size)===size?{...x,stock:Math.max(0,Number(x.stock||0)+(Number(direction)||0)*qty)}:x);next.stock=next.sizes.reduce((a,x)=>a+Math.max(0,Number(x.stock)||0),0)}else next.stock=Math.max(0,Number(next.stock||0)+(Number(direction)||0)*qty)}return normalizeProduct(next);});
-  window.FIDDA_PRODUCTS=list;
+  setProductsState(list);
   try{localStorage.setItem('fiddaProductsCache_v7',JSON.stringify(list));localStorage.setItem('fiddaDataCacheTime_v3',String(Date.now()));}catch(e){}
   syncVisibleStoreAfterDataRefresh();
 }
@@ -86,8 +89,8 @@ function updateCartCount(){const count=getCart().reduce((a,i)=>a+(Number(i.qty)|
 function productImages(p){return normalizeProduct(p).images}
 
 /* تغيير السلة يحدث على العناصر نفسها؛ لا يتم إعادة تحميل الصفحة ولا إعادة رسم السلة. */
-function updateCustomerStockUI(id){
-  const p=getProducts().find(x=>Number(x.id)===Number(id));if(!p)return;
+function updateCustomerStockUI(id,productOverride=null){
+  const p=productOverride||getProducts().find(x=>Number(x.id)===Number(id));if(!p)return;
   const visible=getCustomerVisibleStock(p),available=visible>0;
   document.querySelectorAll(`[data-stock-product="${CSS.escape(String(id))}"]`).forEach(el=>{
     el.className=`stock-badge ${available?'available':'unavailable'}`;
@@ -103,7 +106,7 @@ function updateCustomerStockUI(id){
     document.querySelectorAll(`[data-size-product="${CSS.escape(String(id))}"]`).forEach(btn=>{const av=getVisibleSizeStock(p,btn.dataset.sizeValue||'')>0;btn.classList.toggle('available',av);btn.classList.toggle('unavailable',!av);btn.disabled=!av});
   }
 }
-function updateAllCustomerStockUI(){getProducts().forEach(p=>updateCustomerStockUI(p.id))}
+function updateAllCustomerStockUI(){const products=getProducts();products.forEach(p=>updateCustomerStockUI(p.id,p))}
 function addToCart(id,qty=1,size=''){
   const p=getProducts().find(x=>Number(x.id)===Number(id));if(!p)return false;const selectedSize=String(size||'').trim();
   if(productHasSizes(p)&&!selectedSize){showToast('اختر القياس أولاً','error');return false}
@@ -238,7 +241,7 @@ async function refreshStoreData({quiet=true}={}){
     if(pr.error)throw pr.error;if(cr.error)throw cr.error;
     const nextProducts=(pr.data||[]).map(rowToProduct),nextCategories=(cr.data||[]).map(rowToCategory);
     const oldP=JSON.stringify(window.FIDDA_PRODUCTS||[]),oldC=JSON.stringify(window.FIDDA_CATEGORIES||[]);
-    window.FIDDA_PRODUCTS=nextProducts;window.FIDDA_CATEGORIES=nextCategories;window.FIDDA_DB_READY=true;
+    setProductsState(nextProducts);window.FIDDA_CATEGORIES=nextCategories;window.FIDDA_DB_READY=true;
     try{localStorage.setItem('fiddaProductsCache_v7',JSON.stringify(nextProducts));localStorage.setItem('fiddaCategoriesCache_v3',JSON.stringify(nextCategories));localStorage.setItem('fiddaDataCacheTime_v3',String(Date.now()))}catch(e){}
     __lastStoreRefresh=Date.now();
     if(oldP!==JSON.stringify(nextProducts)||oldC!==JSON.stringify(nextCategories))syncVisibleStoreAfterDataRefresh();
@@ -281,11 +284,6 @@ function bootStore(){
   // صفحة الإدارة لا تحتاج تشغيل واجهة المتجر أو مؤقتات التحديث الثقيلة.
   if(document.body?.classList.contains('admin-body') || location.pathname.toLowerCase().endsWith('/admin.html')) return;
   // لا ننتظر الشبكة إطلاقًا: الواجهة والسلة تظهر من الذاكرة/الكاش فورًا.
-  const CART_RESET_VERSION='fidda-cart-reset-v3';
-  if(localStorage.getItem(CART_RESET_VERSION)!=='1'){
-    localStorage.removeItem(CART_KEY);
-    localStorage.setItem(CART_RESET_VERSION,'1');
-  }
   // مؤشرات التحميل أصبحت داخل أماكن العناصر نفسها، وليست طبقة فوق الصفحة.
   // عند تنفيذ render* يتم استبدال المؤشر مباشرة بالعناصر الفعلية.
   renderStoreImmediately();
@@ -325,7 +323,7 @@ window.addEventListener('fidda-realtime-reconcile',event=>{
 });
 const FIDDA_LIVE_SYNC_KEY='fiddaLiveSync_v2';
 function persistLiveProducts(list){
-  window.FIDDA_PRODUCTS=(list||[]).map(normalizeProduct);
+  setProductsState((list||[]).map(normalizeProduct));
   try{
     localStorage.setItem('fiddaProductsCache_v7',JSON.stringify(window.FIDDA_PRODUCTS));
     localStorage.setItem('fiddaDataCacheTime_v3',String(Date.now()));

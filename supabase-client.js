@@ -96,6 +96,10 @@ function startFiddaRealtime(){
       const p=payload?.payload||payload||{};
       window.dispatchEvent(new CustomEvent('fidda-data-changed',{detail:{table:p.table,eventType:p.eventType||payload?.event,new:p.new,old:p.old,source:'broadcast'}}));
     });
+  channel.on('broadcast',{event:'catalog_stock'},payload=>{
+    const p=payload?.payload||payload||{};
+    if(p.type==='order-stock-optimistic')window.dispatchEvent(new CustomEvent('fidda-order-stock-optimistic',{detail:p}));
+  });
   // Postgres Realtime: يصل تغير المخزون/القياسات/الترتيب فورًا للزبائن.
   for(const event of ['INSERT','UPDATE','DELETE']){
     channel.on('postgres_changes',{event,schema:'public',table:'products'},payload=>{

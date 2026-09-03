@@ -451,76 +451,69 @@ img{content-visibility:auto}
   
 /* =========================================================
    FIDDA — مميزات المتجر
-   أربع بطاقات أنيقة أسفل قسم عن فضة، بتخطيط 2 × 2.
+   أربع بطاقات بسيطة وأنيقة فوق قسم الأكثر اختيارًا.
    ========================================================= */
 .fidda-benefits-section{
-  padding:78px 0 88px;
-  background:linear-gradient(180deg,#e8e8e5 0%,#f7f7f5 100%);
+  padding:34px 0 38px;
+  background:transparent;
 }
 .fidda-benefits-grid{
-  width:min(900px,92%);
+  width:min(760px,92%);
   margin:0 auto;
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:18px;
+  gap:14px;
 }
 .fidda-benefit-card{
-  min-height:128px;
+  min-height:82px;
   display:flex;
   align-items:center;
-  justify-content:center;
-  gap:18px;
-  padding:22px 24px;
-  background:rgba(255,255,255,.82);
+  justify-content:flex-start;
+  gap:14px;
+  padding:14px 18px;
+  background:rgba(255,255,255,.9);
   border:1px solid rgba(20,20,20,.08);
-  border-radius:24px;
-  box-shadow:0 16px 38px rgba(0,0,0,.08),0 0 0 1px rgba(255,255,255,.65) inset;
+  border-radius:18px;
+  box-shadow:0 8px 22px rgba(0,0,0,.06);
   text-align:right;
-  transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease;
+  transition:transform .25s ease,box-shadow .25s ease;
 }
 .fidda-benefit-card:hover{
-  transform:translateY(-4px);
-  border-color:rgba(130,130,130,.28);
-  box-shadow:0 20px 42px rgba(0,0,0,.11),0 0 28px rgba(255,255,255,.65);
+  transform:translateY(-2px);
+  box-shadow:0 12px 28px rgba(0,0,0,.09);
 }
 .fidda-benefit-icon{
-  width:62px;
-  height:62px;
-  flex:0 0 62px;
+  width:48px;
+  height:48px;
+  flex:0 0 48px;
   display:grid;
   place-items:center;
-  border-radius:18px;
-  background:linear-gradient(145deg,#171717,#3b3b3b);
-  box-shadow:0 8px 22px rgba(0,0,0,.18),0 0 22px rgba(255,255,255,.16);
+  border-radius:14px;
+  background:#171717;
 }
 .fidda-benefit-icon svg{
-  width:32px;
-  height:32px;
+  width:25px;
+  height:25px;
   fill:none;
   stroke:#f4f4f2;
-  stroke-width:1.7;
+  stroke-width:1.8;
   stroke-linecap:round;
   stroke-linejoin:round;
 }
 .fidda-benefit-card h3{
-  margin:0 0 3px;
-  font-size:17px;
-  font-weight:700;
-}
-.fidda-benefit-card p{
   margin:0;
-  color:#777;
-  font-size:10px;
-  line-height:1.8;
+  font-size:15px;
+  font-weight:700;
+  line-height:1.5;
 }
+.fidda-benefit-card p{display:none!important}
 @media(max-width:600px){
-  .fidda-benefits-section{padding:52px 0 62px}
-  .fidda-benefits-grid{width:100%;gap:11px}
-  .fidda-benefit-card{min-height:112px;padding:16px 12px;gap:10px;border-radius:19px}
-  .fidda-benefit-icon{width:48px;height:48px;flex-basis:48px;border-radius:15px}
-  .fidda-benefit-icon svg{width:25px;height:25px}
-  .fidda-benefit-card h3{font-size:12px;margin-bottom:2px}
-  .fidda-benefit-card p{font-size:8px;line-height:1.7}
+  .fidda-benefits-section{padding:24px 0 30px}
+  .fidda-benefits-grid{width:calc(100% - 28px);gap:10px}
+  .fidda-benefit-card{min-height:76px;padding:12px 10px;gap:9px;border-radius:15px}
+  .fidda-benefit-icon{width:40px;height:40px;flex-basis:40px;border-radius:12px}
+  .fidda-benefit-icon svg{width:21px;height:21px}
+  .fidda-benefit-card h3{font-size:11px}
 }
 
   /* السلة */

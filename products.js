@@ -1,4 +1,4 @@
-/* فِضّة FIDDA — متجر الزبائن */
+/* فِضّة FIDDA — متجر الزبائن | V41 cart counter final */
 const DELIVERY_FEE = 5000;
 const CART_KEY = 'fiddaCart';
 
@@ -42,7 +42,8 @@ function getCart(){try{const x=JSON.parse(localStorage.getItem(CART_KEY)||'[]');
 function saveCart(cart){
   const safe=Array.isArray(cart)?cart.filter(i=>i&&cartId(i.id)&&Number(i.qty)>0).map(i=>({...i,id:i.id,qty:Math.max(1,Math.floor(Number(i.qty)||1))})):[];
   localStorage.setItem(CART_KEY,JSON.stringify(safe));
-  window.dispatchEvent(new CustomEvent('fidda-cart-changed'));
+  updateCartCount();
+  window.dispatchEvent(new CustomEvent('fidda-cart-changed',{detail:{count:safe.reduce((a,i)=>a+(Number(i.qty)||0),0)}}));
 }
 function broadcastOptimisticOrderStock(items,mode='reserve',token=''){
   const payload={type:'order-stock-optimistic',mode,token:token||('opt-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)),items:(items||[]).map(i=>({id:Number(i.id),qty:Math.max(1,Math.floor(Number(i.qty)||1)),...(i.size?{size:String(i.size)}:{})})),at:Date.now()};
@@ -91,7 +92,11 @@ function showToast(message,type='normal'){
   if(!toast){toast=document.createElement('div');toast.className='toast';document.body.appendChild(toast)}
   toast.textContent=message;toast.dataset.type=type;toast.classList.add('show');clearTimeout(window.__fiddaToastTimer);window.__fiddaToastTimer=setTimeout(()=>toast.classList.remove('show'),1900);
 }
-function updateCartCount(){const count=getCart().reduce((a,i)=>a+(Number(i.qty)||0),0);document.querySelectorAll('#cartCount').forEach(e=>e.textContent=count)}
+function updateCartCount(){
+  const count=getCart().reduce((a,i)=>a+(Number(i.qty)||0),0);
+  document.querySelectorAll('#cartCount,.header-cart-count,[data-cart-count]').forEach(e=>{e.textContent=String(count);e.setAttribute('data-count',String(count));});
+  return count;
+}
 function productImages(p){return normalizeProduct(p).images}
 
 /* تغيير السلة يحدث على العناصر نفسها؛ لا يتم إعادة تحميل الصفحة ولا إعادة رسم السلة. */
@@ -353,6 +358,9 @@ try{
 }catch(e){}
 window.addEventListener('storage',e=>{
   if(e.key==='fiddaOrderStockSync_v1'&&e.newValue){try{handleAdminStockBroadcast(JSON.parse(e.newValue))}catch(err){}}
+});
+window.addEventListener('storage',e=>{
+  if(e.key===CART_KEY){ updateCartCount(); updateAllCustomerStockUI(); updateCartSummary(); updateDetailQuantity(window.__detailProductId); if(document.getElementById('cartPage'))renderCart(); if(document.getElementById('orderSummary'))renderCheckout(); }
 });
 window.addEventListener('fidda-db-ready',syncVisibleStoreAfterDataRefresh);
 // تصحيح لحظي واحد بعد إعادة اتصال Realtime فقط؛ لا يوجد polling دوري.

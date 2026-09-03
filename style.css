@@ -2007,3 +2007,8 @@ body.lightbox-open{overflow:hidden}
 .product-card .ring-action:hover{background:#238b52!important;color:#fff!important;transform:translateY(-1px);}
 .product-card .ring-action:hover .ring-size-label{color:#fff!important;}
 @media(max-width:560px){.fidda-inline-loader{min-height:120px;border-radius:18px;font-size:11px}.product-detail > .fidda-inline-loader{min-height:260px}.product-card .ring-action{width:62px!important;min-width:62px!important;height:40px!important;border-radius:13px!important;}.product-card .ring-action .ring-size-label{font-size:12px!important;}}
+
+/* V41: loading is only inline placeholders; never show a global loader text. */
+body > .fidda-loader-text{display:none!important;}
+.header-cart-count{transition:transform .16s ease,opacity .16s ease;}
+.header-cart-count[data-count]:not([data-count='0']){transform:scale(1.04);}

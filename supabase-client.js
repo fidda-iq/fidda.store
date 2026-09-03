@@ -64,7 +64,7 @@ async function fiddaDbInit(){
       // المتجر يحتاج قناة المنتجات فقط. لا نفتح قناة الطلبات/الزيارات هنا.
       startFiddaRealtime();
       const [pr,cr]=await Promise.all([
-        db.from('products').select('*').order('created_at',{ascending:false}),
+        db.from('products').select('*').order('sort_order',{ascending:true,nullsFirst:false}).order('created_at',{ascending:true}),
         db.from('categories').select('*').order('sort_order',{ascending:true}).order('created_at',{ascending:true})
       ]);
       if(pr.error)throw pr.error;if(cr.error)throw cr.error;
@@ -95,8 +95,14 @@ function startFiddaRealtime(){
   channel.on('broadcast',{event:'catalog_change'},payload=>{
       const p=payload?.payload||payload||{};
       window.dispatchEvent(new CustomEvent('fidda-data-changed',{detail:{table:p.table,eventType:p.eventType||payload?.event,new:p.new,old:p.old,source:'broadcast'}}));
-    })
-    .subscribe(status=>{
+    });
+  // Postgres Realtime: يصل تغير المخزون/القياسات/الترتيب فورًا للزبائن.
+  for(const event of ['INSERT','UPDATE','DELETE']){
+    channel.on('postgres_changes',{event,schema:'public',table:'products'},payload=>{
+      window.dispatchEvent(new CustomEvent('fidda-data-changed',{detail:{table:'products',eventType:event,new:payload.new,old:payload.old,source:'postgres_changes'}}));
+    });
+  }
+  channel.subscribe(status=>{
       fiddaProductsRealtimeStatus=status;emitFiddaRealtimeStatus('products',status);
       if(status==='SUBSCRIBED'){
         window.dispatchEvent(new CustomEvent('fidda-realtime-ready',{detail:{table:'products'}}));
@@ -135,8 +141,8 @@ function bindFiddaRealtimeRecovery(){
 }
 
 function readLocalArray(k){try{const x=localStorage.getItem(k);return x?JSON.parse(x):[]}catch(e){return[]}}
-function productToRow(p){return {id:Number(p.id),name:p.name,category:p.category,price:Number(p.price)||0,description:p.desc||'',material:p.material||'فضة',payment:p.payment||'الدفع عند الاستلام',images:Array.isArray(p.images)?p.images:[],stock:Math.max(0,Number(p.stock)||0),custom_fields:Array.isArray(p.customFields)?p.customFields:[],featured:!!p.featured,sizes:Array.isArray(p.sizes)?p.sizes:[]}}
-function rowToProduct(r){return normalizeProduct({id:Number(r.id),name:r.name,category:r.category,price:r.price,desc:r.description,material:r.material,payment:r.payment,images:r.images||[],stock:r.stock,customFields:r.custom_fields||[],featured:r.featured,sizes:Array.isArray(r.sizes)?r.sizes:[]})}
+function productToRow(p){return {id:Number(p.id),name:p.name,category:p.category,price:Number(p.price)||0,description:p.desc||'',material:p.material||'فضة',payment:p.payment||'الدفع عند الاستلام',images:Array.isArray(p.images)?p.images:[],stock:Math.max(0,Number(p.stock)||0),custom_fields:Array.isArray(p.customFields)?p.customFields:[],featured:!!p.featured,sizes:Array.isArray(p.sizes)?p.sizes:[],sort_order:Number.isFinite(Number(p.sort_order))?Number(p.sort_order):0}}
+function rowToProduct(r){return normalizeProduct({id:Number(r.id),name:r.name,category:r.category,price:r.price,desc:r.description,material:r.material,payment:r.payment,images:r.images||[],stock:r.stock,customFields:r.custom_fields||[],featured:r.featured,sizes:Array.isArray(r.sizes)?r.sizes:[],sort_order:r.sort_order})}
 function categoryToRow(c){return {id:String(c.id),name:c.name,image:c.image||'',sort_order:0}}
 function rowToCategory(r){return {id:String(r.id),name:r.name,image:r.image||''}}
 async function dbGetProduct(id){const db=await ensureFiddaSupabase();const {data,error}=await db.from('products').select('*').eq('id',id).single();if(error)throw error;return rowToProduct(data)}

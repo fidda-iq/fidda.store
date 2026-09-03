@@ -21,7 +21,7 @@ function normalizeProduct(p){
   const sizeStock=sizes.reduce((a,x)=>a+x.stock,0);
   const baseStock=Math.max(0,Number.isFinite(Number(p?.stock))?Number(p.stock):0);
   const stock=sizes.length?sizeStock:baseStock;
-  return {...p,stock,sizes,images:(Array.isArray(p?.images)&&p.images.length?p.images:[p?.image||'']).filter(Boolean),material:p?.material||'فضة',payment:p?.payment||'الدفع عند الاستلام',customFields:Array.isArray(p?.customFields)?p.customFields.filter(x=>x&&String(x.label||'').trim()&&String(x.value||'').trim()).map(x=>({label:String(x.label).trim(),value:String(x.value).trim()})):[]};
+  return {...p,sort_order:Number.isFinite(Number(p?.sort_order))?Number(p.sort_order):0,stock,sizes,images:(Array.isArray(p?.images)&&p.images.length?p.images:[p?.image||'']).filter(Boolean),material:p?.material||'فضة',payment:p?.payment||'الدفع عند الاستلام',customFields:Array.isArray(p?.customFields)?p.customFields.filter(x=>x&&String(x.label||'').trim()&&String(x.value||'').trim()).map(x=>({label:String(x.label).trim(),value:String(x.value).trim()})):[]};
 }
 function isRingCategory(p){const c=String(p?.category??'').replace(/\s+/g,'').trim();return c.includes('خواتم')||c.includes('خاتم')}
 function productHasSizes(p){return isRingCategory(p)&&Array.isArray(p?.sizes)&&p.sizes.length>0}
@@ -29,7 +29,7 @@ function getSizeStock(p,size){const key=String(size??'').trim();if(!productHasSi
 function getCartSizeQty(id,size){return getCart().filter(i=>Number(i.id)===Number(id)&&String(i.size||'')===String(size||'')).reduce((a,i)=>a+(Number(i.qty)||0),0)}
 function getVisibleSizeStock(p,size){return Math.max(0,getSizeStock(p,size)-getCartSizeQty(p?.id,size))}
 function getRingTotalVisibleStock(p){if(!isRingCategory(p))return 0;return (Array.isArray(p?.sizes)?p.sizes:[]).reduce((a,x)=>a+getVisibleSizeStock(p,x.size),0)}
-function getProducts(){return (window.FIDDA_PRODUCTS||DEFAULT_PRODUCTS).map(normalizeProduct)}
+function getProducts(){return (window.FIDDA_PRODUCTS||DEFAULT_PRODUCTS).map(normalizeProduct).sort((a,b)=>{const ao=Number.isFinite(Number(a.sort_order))?Number(a.sort_order):0,bo=Number.isFinite(Number(b.sort_order))?Number(b.sort_order):0;return ao-bo || Number(a.id)-Number(b.id)})}
 function getCategories(){return window.FIDDA_CATEGORIES||DEFAULT_CATEGORIES}
 function saveProducts(x){window.FIDDA_PRODUCTS=(x||[]).map(normalizeProduct);return window.FIDDA_PRODUCTS}
 function saveCategories(x){window.FIDDA_CATEGORIES=x||[];return window.FIDDA_CATEGORIES}
@@ -234,7 +234,7 @@ let storeRefreshBusy=false;
 async function refreshStoreData({quiet=true}={}){
   if(!window.fiddaSupabase||storeRefreshBusy)return false;storeRefreshBusy=true;
   try{
-    const [pr,cr]=await Promise.all([fiddaSupabase.from('products').select('*').order('created_at',{ascending:false}),fiddaSupabase.from('categories').select('*').order('sort_order',{ascending:true}).order('created_at',{ascending:true})]);
+    const [pr,cr]=await Promise.all([fiddaSupabase.from('products').select('*').order('sort_order',{ascending:true,nullsFirst:false}).order('created_at',{ascending:true}),fiddaSupabase.from('categories').select('*').order('sort_order',{ascending:true}).order('created_at',{ascending:true})]);
     if(pr.error)throw pr.error;if(cr.error)throw cr.error;
     const nextProducts=(pr.data||[]).map(rowToProduct),nextCategories=(cr.data||[]).map(rowToCategory);
     const oldP=JSON.stringify(window.FIDDA_PRODUCTS||[]),oldC=JSON.stringify(window.FIDDA_CATEGORIES||[]);
@@ -356,6 +356,7 @@ window.addEventListener('fidda-data-changed',event=>{
     const next=rowToProduct(payload.new);
     const current=getProducts();
     const idx=current.findIndex(p=>Number(p.id)===Number(next.id));
+    if(payload.eventType!=='DELETE' && idx>=0 && JSON.stringify(current[idx])===JSON.stringify(next)) return;
     if(payload.eventType==='UPDATE' && idx>=0){
       const prev=current[idx];
       // أغلب أحداث Realtime أثناء الطلبات تغيّر المخزون فقط؛ حدّث الواجهة المستهدفة

@@ -13,99 +13,29 @@ html{scroll-behavior:smooth}body{margin:0;background:#f7f7f5;color:#151515;font-
    FIDDA — مميزات المتجر
    عناصر خفيفة بلا بطاقات، منسجمة مع خلفية المتجر.
    ========================================================= */
-.fidda-benefits-section{
-  padding:28px 0 34px;
-  background:transparent;
-  overflow:hidden;
-}
-.fidda-benefits-grid{
-  width:min(860px,92%);
-  margin:0 auto;
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:28px;
-  align-items:start;
-}
-.fidda-benefit-card{
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-start;
-  gap:10px;
-  padding:4px 8px;
-  background:transparent;
-  border:0;
-  border-radius:0;
-  box-shadow:none;
-  text-align:center;
-  opacity:0;
-  transform:translateY(22px) scale(.96);
-  animation:fiddaBenefitReveal .8s cubic-bezier(.22,.75,.2,1) forwards;
-}
-.fidda-benefit-card:nth-child(1){animation-delay:.08s}
-.fidda-benefit-card:nth-child(2){animation-delay:.18s}
-.fidda-benefit-card:nth-child(3){animation-delay:.28s}
-.fidda-benefit-card:nth-child(4){animation-delay:.38s}
-.fidda-benefit-card:hover{
-  transform:translateY(-5px) scale(1.02);
-}
-.fidda-benefit-icon{
-  width:58px;
-  height:58px;
-  flex:0 0 58px;
-  display:grid;
-  place-items:center;
-  border-radius:50%;
-  background:rgba(0,0,0,.10);
-  border:1px solid rgba(0,0,0,.10);
-  box-shadow:0 8px 22px rgba(0,0,0,.07), inset 0 0 0 1px rgba(255,255,255,.20);
-  backdrop-filter:blur(5px);
-  -webkit-backdrop-filter:blur(5px);
-  transition:transform .45s cubic-bezier(.2,.8,.2,1), background .35s ease, box-shadow .35s ease;
-}
-.fidda-benefit-card:hover .fidda-benefit-icon{
-  transform:translateY(-2px) rotate(-4deg);
-  background:rgba(0,0,0,.16);
-  box-shadow:0 13px 28px rgba(0,0,0,.12), inset 0 0 0 1px rgba(255,255,255,.28);
-}
-.fidda-benefit-icon svg{
-  width:28px;
-  height:28px;
-  fill:none;
-  stroke:rgba(0,0,0,.78);
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  transition:transform .4s ease;
-}
-.fidda-benefit-card:hover .fidda-benefit-icon svg{transform:scale(1.08)}
-.fidda-benefit-card h3{
-  margin:0;
-  font-size:14px;
-  font-weight:700;
-  line-height:1.6;
-  color:inherit;
-}
-.fidda-benefit-card p{display:none!important}
-@keyframes fiddaBenefitReveal{
-  0%{opacity:0;transform:translateY(22px) scale(.96);filter:blur(4px)}
-  65%{opacity:1;transform:translateY(-3px) scale(1.01);filter:blur(0)}
-  100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
-}
-@media(max-width:800px){
-  .fidda-benefits-section{padding:22px 0 28px}
-  .fidda-benefits-grid{width:calc(100% - 28px);grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 18px}
-  .fidda-benefit-card{gap:8px;padding:2px 4px}
-  .fidda-benefit-icon{width:48px;height:48px;flex-basis:48px}
-  .fidda-benefit-icon svg{width:23px;height:23px}
-  .fidda-benefit-card h3{font-size:12px}
-}
-@media(prefers-reduced-motion:reduce){
-  .fidda-benefit-card{opacity:1;transform:none;animation:none}
-  .fidda-benefit-icon,.fidda-benefit-icon svg{transition:none}
-}
-
+.fidda-benefits-section{padding:34px 0 38px;background:transparent;overflow:hidden}
+.fidda-benefits-intro{text-align:center;margin:0 auto 24px;opacity:0;animation:fiddaIntroReveal .9s cubic-bezier(.22,.75,.2,1) .05s forwards}
+.fidda-benefits-intro span{display:inline-block;font-size:22px;font-weight:700;letter-spacing:.1px;color:inherit;position:relative;padding:0 22px}
+.fidda-benefits-intro span:before,.fidda-benefits-intro span:after{content:"";position:absolute;top:50%;width:34px;height:1px;background:currentColor;opacity:.25}
+.fidda-benefits-intro span:before{right:100%}.fidda-benefits-intro span:after{left:100%}
+.fidda-benefits-grid{width:min(860px,92%);margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px;align-items:start}
+.fidda-benefit-card{min-width:0;display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 8px;background:transparent;border:0;box-shadow:none;text-align:center;opacity:0;transform:translateY(22px) scale(.96);animation:fiddaBenefitReveal .85s cubic-bezier(.22,.75,.2,1) forwards}
+.fidda-benefit-card:nth-child(1){animation-delay:.14s}.fidda-benefit-card:nth-child(2){animation-delay:.24s}.fidda-benefit-card:nth-child(3){animation-delay:.34s}.fidda-benefit-card:nth-child(4){animation-delay:.44s}
+.fidda-benefit-icon{width:58px;height:58px;flex:0 0 58px;display:grid;place-items:center;position:relative;border-radius:50%;background:rgba(0,0,0,.12);border:1px solid rgba(0,0,0,.12);box-shadow:0 10px 24px rgba(0,0,0,.08),inset 0 0 0 1px rgba(255,255,255,.2);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:transform .5s cubic-bezier(.2,.8,.2,1),background .35s ease,box-shadow .35s ease}
+.fidda-benefit-icon svg{width:28px;height:28px;fill:none;stroke:rgba(0,0,0,.8);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;position:relative;z-index:2;transition:transform .45s ease}
+.fidda-icon-glow{position:absolute;inset:-5px;border-radius:50%;border:1px solid rgba(0,0,0,.07);opacity:0;transform:scale(.75);transition:opacity .4s ease,transform .5s ease}
+.fidda-benefit-card:hover .fidda-benefit-icon{transform:translateY(-5px) scale(1.05);background:rgba(0,0,0,.17);box-shadow:0 15px 30px rgba(0,0,0,.13)}
+.fidda-benefit-card:hover .fidda-benefit-icon svg{transform:scale(1.08) rotate(-3deg)}.fidda-benefit-card:hover .fidda-icon-glow{opacity:1;transform:scale(1)}
+.fidda-benefit-card h3{margin:0;font-size:14px;font-weight:700;line-height:1.6;color:inherit}
+.fidda-gift-banner{width:min(700px,92%);margin:34px auto 0;display:flex;align-items:center;justify-content:center;gap:18px;padding:18px 24px;border:1px solid rgba(0,0,0,.12);border-radius:20px;background:rgba(0,0,0,.055);box-shadow:0 12px 30px rgba(0,0,0,.07),inset 0 1px 0 rgba(255,255,255,.28);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;transform:translateY(20px);animation:fiddaGiftReveal .9s cubic-bezier(.22,.75,.2,1) .62s forwards;transition:transform .35s ease,box-shadow .35s ease,border-color .35s ease}
+.fidda-gift-banner:hover{transform:translateY(-3px);box-shadow:0 17px 36px rgba(0,0,0,.1);border-color:rgba(0,0,0,.2)}
+.fidda-gift-icon{width:50px;height:50px;flex:0 0 50px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.13);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.fidda-gift-icon svg{width:27px;height:27px;fill:none;stroke:rgba(0,0,0,.82);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.fidda-gift-copy{text-align:right}.fidda-gift-copy h3{margin:0 0 3px;font-size:17px;font-weight:800}.fidda-gift-copy p{margin:0;font-size:12px;line-height:1.8;opacity:.7}
+@keyframes fiddaBenefitReveal{0%{opacity:0;transform:translateY(22px) scale(.96);filter:blur(4px)}65%{opacity:1;transform:translateY(-3px) scale(1.01);filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@keyframes fiddaIntroReveal{0%{opacity:0;transform:translateY(12px);filter:blur(4px)}100%{opacity:1;transform:translateY(0);filter:blur(0)}}
+@keyframes fiddaGiftReveal{0%{opacity:0;transform:translateY(20px) scale(.98);filter:blur(3px)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@media(max-width:800px){.fidda-benefits-section{padding:24px 0 30px}.fidda-benefits-intro{margin-bottom:20px}.fidda-benefits-intro span{font-size:17px;padding:0 12px}.fidda-benefits-intro span:before,.fidda-benefits-intro span:after{width:20px}.fidda-benefits-grid{width:calc(100% - 28px);grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 18px}.fidda-benefit-card{gap:8px;padding:2px 4px}.fidda-benefit-icon{width:48px;height:48px;flex-basis:48px}.fidda-benefit-icon svg{width:23px;height:23px}.fidda-benefit-card h3{font-size:12px}.fidda-gift-banner{width:calc(100% - 28px);margin-top:28px;padding:15px 13px;gap:11px;border-radius:17px}.fidda-gift-icon{width:43px;height:43px;flex-basis:43px}.fidda-gift-icon svg{width:23px;height:23px}.fidda-gift-copy h3{font-size:14px}.fidda-gift-copy p{font-size:10px;line-height:1.8}}
+@media(prefers-reduced-motion:reduce){.fidda-benefit-card,.fidda-benefits-intro,.fidda-gift-banner{opacity:1;transform:none;animation:none}.fidda-benefit-icon,.fidda-benefit-icon svg,.fidda-gift-banner{transition:none}}
 
 @media(max-width:900px){.nav-links{display:none}.products-grid{grid-template-columns:repeat(2,1fr)}.category-grid,.story-grid,.product-detail,.checkout-layout,.cart-layout{grid-template-columns:1fr;gap:30px}.story-mark{height:280px}.cart-row{grid-template-columns:70px 1fr auto}.cart-row img{width:70px;height:70px}.shop-toolbar{align-items:stretch;flex-direction:column}.search-input{width:100%}.admin-form{grid-template-columns:1fr}.admin-form label:nth-child(4),.admin-form label:nth-child(5),.admin-form label:nth-child(6),.admin-form .check-label,.admin-form .form-actions{grid-column:auto}}@media(max-width:560px){.hero{min-height:700px}.hero-content{padding:35px 0 55px}.hero-logo{width:94vw;max-height:220px;margin-bottom:10px}.nav-wrap{min-height:76px}.brand img{width:110px;height:44px}.admin-link{display:none}.hero{min-height:580px}.hero h1{font-size:48px}.section{padding:65px 0}.section-heading{align-items:start;flex-direction:column}.section-heading h2{font-size:37px}.products-grid{gap:10px}.product-info{padding:12px}.product-info h3{font-size:12px}.page-hero h1{font-size:45px}.detail-content h1{font-size:38px}.checkout-card{padding:22px}.footer-grid{grid-template-columns:1fr 1fr}.footer-grid>div:first-child{grid-column:1/-1}.admin-head{align-items:start;flex-direction:column;gap:15px}.admin-item{grid-template-columns:60px 1fr}.admin-item>img,.category-thumb{width:60px;height:60px}.admin-actions{grid-column:2}.admin-form-wrap{padding:17px}}
 

@@ -55,26 +55,36 @@ async function ensureFiddaSupabase(){
 
 async function fiddaFetchCatalog(){
   const db=await ensureFiddaSupabase();
-  // نقرأ جدول المنتجات مباشرة أولًا حتى تظهر المنتجات التي أضيفت حديثًا
-  // حتى لو كانت دالة الكتالوج القديمة في Supabase لم تُحدّث بعد.
+  // المصدر السلطوي للمتجر: RPC الذي يقرأ public.products مباشرة داخل قاعدة البيانات.
+  // هذا يتجاوز أي اختلاف في RLS أو schema cache ويضمن وصول المنتجات الجديدة.
+  const rpcNames=['fidda_get_public_catalog','fidda_catalog_v49'];
+  let lastError=null;
+  for(const fn of rpcNames){
+    try{
+      const {data,error}=await db.rpc(fn);
+      if(!error && data && Array.isArray(data.products) && Array.isArray(data.categories)){
+        return {
+          products:data.products.map(rowToProduct),
+          categories:data.categories.map(rowToCategory)
+        };
+      }
+      if(error) lastError=error;
+    }catch(e){ lastError=e; }
+  }
+  // fallback أخير: القراءة المباشرة. لا نعتبر النتيجة صالحة إلا إذا كانت
+  // products نفسها قابلة للقراءة، حتى لا نستبدل كتالوجًا صحيحًا بقائمة فارغة.
   try{
     const [pr,cr]=await Promise.all([
       db.from('products').select('*').order('sort_order',{ascending:true,nullsFirst:false}).order('created_at',{ascending:true,nullsFirst:false}).order('id',{ascending:true}),
       db.from('categories').select('*').order('sort_order',{ascending:true,nullsFirst:false}).order('created_at',{ascending:true,nullsFirst:false}).order('id',{ascending:true})
     ]);
-    if(!pr.error && !cr.error && Array.isArray(pr.data) && Array.isArray(cr.data) && (pr.data.length || cr.data.length)){
-      return {
-        products:pr.data.map(rowToProduct),
-        categories:cr.data.map(rowToCategory)
-      };
+    if(!pr.error && !cr.error && Array.isArray(pr.data) && Array.isArray(cr.data)){
+      return {products:pr.data.map(rowToProduct),categories:cr.data.map(rowToCategory)};
     }
-  }catch(e){ console.warn('FIDDA direct catalog read:',e); }
-  const {data,error}=await db.rpc('fidda_catalog_v49');
-  if(error)throw error;
-  return {
-    products:(Array.isArray(data?.products)?data.products:[]).map(rowToProduct),
-    categories:(Array.isArray(data?.categories)?data.categories:[]).map(rowToCategory)
-  };
+    if(pr.error) lastError=pr.error;
+    else if(cr.error) lastError=cr.error;
+  }catch(e){ lastError=e; }
+  throw lastError || new Error('تعذر قراءة كتالوج المنتجات');
 }
 
 async function fiddaDbInit(){

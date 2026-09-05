@@ -2062,3 +2062,36 @@ body > .fidda-loader-text{display:none!important;}
   font-size:15px;
   text-align:center;
 }
+
+
+/* ===== FIDDA V64 — storefront image edges + smooth swipe + ring size gate ===== */
+.dark-section:has(#featuredProducts) .product-card,
+.dark-section:has(#featuredProducts) .product-image{
+  background:#171717 !important;
+}
+.dark-section:has(#featuredProducts) .product-image{
+  border:0 !important;
+  outline:0 !important;
+}
+.gallery-main > .gallery-open{
+  touch-action:pan-y;
+  overflow:hidden;
+}
+.gallery-main > .gallery-open img{
+  will-change:transform,opacity;
+  transition:transform .28s cubic-bezier(.2,.75,.25,1),opacity .2s ease !important;
+}
+.gallery-open.swipe-next img{animation:fiddaSwipeNext .28s cubic-bezier(.2,.75,.25,1)}
+.gallery-open.swipe-prev img{animation:fiddaSwipePrev .28s cubic-bezier(.2,.75,.25,1)}
+@keyframes fiddaSwipeNext{
+  0%{transform:translateX(0);opacity:1}
+  45%{transform:translateX(-10%);opacity:.35}
+  100%{transform:translateX(0);opacity:1}
+}
+@keyframes fiddaSwipePrev{
+  0%{transform:translateX(0);opacity:1}
+  45%{transform:translateX(10%);opacity:.35}
+  100%{transform:translateX(0);opacity:1}
+}
+#detailAddButton:disabled{cursor:not-allowed}
+#detailAddButton:not(:disabled){cursor:pointer}

@@ -386,14 +386,6 @@ window.addEventListener('fidda-orders-changed',event=>{
   // لا ننتظر الطلبات لإعادة قراءة products: حدث products نفسه يحدّث المخزون فور وصوله.
   // هذا المستمع موجود فقط للتوافق مع النسخ القديمة ولا يفرض أي تأخير زمني.
 });
-window.addEventListener('fidda-live-broadcast',event=>{
-  const payload=event.detail||{};
-  if(payload.type==='products'||payload.type==='categories'){
-    window.dispatchEvent(new CustomEvent('fidda-data-changed',{detail:{table:payload.type,eventType:payload.eventType,new:payload.new,old:payload.old,source:'broadcast'}}));
-  }else if(payload.type==='orders'){
-    window.dispatchEvent(new CustomEvent('fidda-orders-changed',{detail:{eventType:payload.eventType,new:payload.new,old:payload.old,source:'broadcast'}}));
-  }
-});
 window.addEventListener('fidda-data-changed',event=>{
   const payload=event.detail||{};
   if(payload.table==='products'&&payload.new){

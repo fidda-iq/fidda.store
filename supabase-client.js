@@ -152,16 +152,20 @@ function rowToCategory(r){return {id:String(r.id),name:r.name,image:r.image||''}
 async function dbGetProduct(id){const db=await ensureFiddaSupabase();const {data,error}=await db.from('products').select('*').eq('id',id).single();if(error)throw error;return rowToProduct(data)}
 async function dbSaveProduct(product){
   const db=await ensureFiddaSupabase();
-  // Product writes go through a SECURITY DEFINER RPC. This avoids the RLS INSERT/UPDATE
-  // mismatch that caused a newly added product to look saved optimistically, then vanish
-  // after reload because the database write was rejected.
-  const payload=productToRow(product);
-  if(!product?.id) delete payload.id;
-  const {data,error}=await db.rpc('fidda_save_product',{p_product:payload});
-  if(error) throw error;
-  const saved=rowToProduct(data);
-  broadcastFiddaLiveChange({type:'products',eventType:'UPDATE',new:data,at:Date.now()});
-  return saved;
+  const p=normalizeProduct(product||{});
+  const args={
+    p_name:String(p.name||''),p_category:String(p.category||''),p_price:Number(p.price)||0,
+    p_description:String(p.desc||''),p_material:String(p.material||'فضة'),
+    p_payment:String(p.payment||'الدفع عند الاستلام'),p_images:Array.isArray(p.images)?p.images:[],
+    p_stock:Math.max(0,Math.floor(Number(p.stock)||0)),
+    p_custom_fields:Array.isArray(p.customFields)?p.customFields:[],p_featured:!!p.featured,
+    p_sizes:Array.isArray(p.sizes)?p.sizes:[],p_sort_order:Number.isFinite(Number(p.sort_order))?Number(p.sort_order):2147483647
+  };
+  let data,error;
+  if(p.id) ({data,error}=await db.rpc('fidda_update_product',{...args,p_id:Number(p.id)}));
+  else ({data,error}=await db.rpc('fidda_create_product',args));
+  if(error)throw error;
+  return rowToProduct(data);
 }
 async function dbDeleteProduct(id){
   const db=await ensureFiddaSupabase();

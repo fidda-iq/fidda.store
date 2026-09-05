@@ -2098,3 +2098,16 @@ body > .fidda-loader-text{display:none!important;}
 }
 #detailAddButton:disabled{cursor:not-allowed}
 #detailAddButton:not(:disabled){cursor:pointer}
+/* ===== FIDDA V67 — product gallery click zones, lightbox zoom + back history ===== */
+.gallery-main > .gallery-open{cursor:zoom-in}
+.fidda-lightbox{touch-action:none}
+.fidda-zoom-wrap{position:relative;z-index:2;max-width:96vw;max-height:90vh;display:grid;place-items:center;overflow:hidden;width:100%;height:100%;pointer-events:none}
+.fidda-lightbox #fiddaLightboxImage{pointer-events:auto;transition:transform .18s ease,left .12s ease,top .12s ease,opacity .12s linear;transform-origin:center center;cursor:zoom-in;will-change:transform}
+.fidda-lightbox #fiddaLightboxImage.zoomed{cursor:grab}
+.fidda-lightbox #fiddaLightboxImage.zoomed:active{cursor:grabbing}
+.fidda-lightbox #fiddaLightboxImage.image-loading{opacity:0!important;visibility:hidden}
+.fidda-zoom-controls{position:absolute;z-index:5;right:22px;bottom:20px;display:flex;gap:7px;direction:ltr}
+.fidda-zoom-controls button{min-width:42px;height:40px;border:1px solid rgba(255,255,255,.25);border-radius:20px;background:rgba(255,255,255,.12);color:#fff;backdrop-filter:blur(8px);cursor:pointer;font-size:16px}
+.fidda-zoom-controls button[data-zoom="reset"]{font-size:10px;padding:0 12px}
+.fidda-zoom-controls button:hover{background:rgba(255,255,255,.24)}
+@media(max-width:560px){.fidda-zoom-controls{right:12px;bottom:12px}.fidda-zoom-controls button{height:38px;min-width:40px}.fidda-zoom-wrap{max-width:100vw;max-height:86vh}}

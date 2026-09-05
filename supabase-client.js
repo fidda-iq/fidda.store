@@ -63,10 +63,21 @@ async function fiddaFetchCatalog(){
     try{
       const {data,error}=await db.rpc(fn);
       if(!error && data && Array.isArray(data.products) && Array.isArray(data.categories)){
-        return {
-          products:data.products.map(rowToProduct),
-          categories:data.categories.map(rowToCategory)
-        };
+        const rpcProducts=data.products.map(rowToProduct);
+        const rpcCategories=data.categories.map(rowToCategory);
+        // لا تسمح لاستجابة فارغة عابرة من RPC بأن تمسح كتالوجًا موجودًا.
+        if(rpcProducts.length===0){
+          try{
+            const [pr,cr]=await Promise.all([
+              db.from('products').select('*').order('sort_order',{ascending:true,nullsFirst:false}).order('created_at',{ascending:true,nullsFirst:false}).order('id',{ascending:true}),
+              db.from('categories').select('*').order('sort_order',{ascending:true,nullsFirst:false}).order('created_at',{ascending:true,nullsFirst:false}).order('id',{ascending:true})
+            ]);
+            if(!pr.error && !cr.error && Array.isArray(pr.data) && pr.data.length){
+              return {products:pr.data.map(rowToProduct),categories:Array.isArray(cr.data)?cr.data.map(rowToCategory):rpcCategories};
+            }
+          }catch(_){}
+        }
+        return {products:rpcProducts,categories:rpcCategories};
       }
       if(error) lastError=error;
     }catch(e){ lastError=e; }

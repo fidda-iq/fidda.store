@@ -129,6 +129,8 @@ function startFiddaRealtime(){
       fiddaProductsRealtimeStatus=status;emitFiddaRealtimeStatus('products',status);
       if(status==='SUBSCRIBED'){
         window.dispatchEvent(new CustomEvent('fidda-realtime-ready',{detail:{table:'products'}}));
+        // تحقق فوري من المصدر بعد الاشتراك حتى يظهر أي منتج أُضيف قبل اتصال القناة.
+        setTimeout(()=>fiddaRealtimeFallbackRefresh().catch(()=>{}),0);
         if(fiddaProductsEverSubscribed)window.dispatchEvent(new CustomEvent('fidda-realtime-reconcile',{detail:{table:'products',reason:'reconnect'}}));
         fiddaProductsEverSubscribed=true;
       }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){

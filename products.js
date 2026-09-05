@@ -360,16 +360,6 @@ window.addEventListener('storage',e=>{
   if(e.key==='fiddaOrderStockSync_v1'&&e.newValue){try{handleAdminStockBroadcast(JSON.parse(e.newValue))}catch(err){}}
 });
 window.addEventListener('storage',e=>{
-  if(e.key==='fiddaLiveSync_v2'&&e.newValue){
-    try{
-      const payload=JSON.parse(e.newValue);
-      if(payload?.type==='products'&&Array.isArray(payload.products)){
-        // Fallback سريع بين تبويبات المتجر/الإدارة إذا لم تصل قناة Realtime بعد.
-        persistLiveProducts(payload.products);
-        syncVisibleStoreAfterDataRefresh();
-      }
-    }catch(err){}
-  }
   if(e.key===CART_KEY){ updateCartCount(); updateAllCustomerStockUI(); updateCartSummary(); updateDetailQuantity(window.__detailProductId); if(document.getElementById('cartPage'))renderCart(); if(document.getElementById('orderSummary'))renderCheckout(); }
 });
 window.addEventListener('fidda-db-ready',syncVisibleStoreAfterDataRefresh);

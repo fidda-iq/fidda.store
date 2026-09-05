@@ -152,8 +152,12 @@ function rowToCategory(r){return {id:String(r.id),name:r.name,image:r.image||''}
 async function dbGetProduct(id){const db=await ensureFiddaSupabase();const {data,error}=await db.from('products').select('*').eq('id',id).single();if(error)throw error;return rowToProduct(data)}
 async function dbSaveProduct(product){
   const db=await ensureFiddaSupabase();
-  const row=productToRow(product);
-  const {data,error}=await db.from('products').upsert(row,{onConflict:'id'}).select('*').single();
+  // Product writes go through a SECURITY DEFINER RPC. This avoids the RLS INSERT/UPDATE
+  // mismatch that caused a newly added product to look saved optimistically, then vanish
+  // after reload because the database write was rejected.
+  const payload=productToRow(product);
+  if(!product?.id) delete payload.id;
+  const {data,error}=await db.rpc('fidda_save_product',{p_product:payload});
   if(error) throw error;
   const saved=rowToProduct(data);
   broadcastFiddaLiveChange({type:'products',eventType:'UPDATE',new:data,at:Date.now()});

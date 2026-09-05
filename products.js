@@ -169,7 +169,22 @@ function sizeSelectorMarkup(p){if(!isRingCategory(p))return '';if(!productHasSiz
 function stockMarkup(p,featured=false){const visible=getCustomerVisibleStock(p);return `<span data-stock-product="${p.id}" class="stock-badge ${featured?'featured-stock ':''}${visible>0?'available':'unavailable'}">${visible>0?'متوفر':'غير متوفر'}</span>`}
 function bagIcon(){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 8.5h11l.8 11H5.7l.8-11Z"></path><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"></path><path d="M9 12.5v2M15 12.5v2"></path></svg>'}
 function productCard(p,featured=false){const img=productImages(p)[0]||'',ring=isRingCategory(p),out=ring?getRingTotalVisibleStock(p)<=0:getRemainingAddableStock(p)<=0,multi=productImages(p).length>1;const actionLabel=ring?'عرض القياسات':'إضافة '+escapeHtml(p.name)+' إلى السلة';const actionMarkup=ring?`<a class="add-btn ring-action" href="product.html?id=${encodeURIComponent(p.id)}#ringSizes" aria-label="${actionLabel}" title="${actionLabel}"><span class="ring-size-label">Size</span></a>`:`<button type="button" class="add-btn" data-add-product="${escapeHtml(p.id)}" ${out?'disabled':''} aria-label="${actionLabel}" title="${actionLabel}">${bagIcon()}</button>`;return `<article class="product-card reveal ${out?'out-of-stock':''}"><a href="product.html?id=${encodeURIComponent(p.id)}" class="product-image"><img src="${escapeHtml(fiddaFastImageUrl(img,720,78))}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async" fetchpriority="low"><span class="product-category">${escapeHtml(p.category)}</span>${multi?`<span class="image-count">◈ ${productImages(p).length}</span>`:''}</a><div class="product-info"><a href="product.html?id=${encodeURIComponent(p.id)}"><h3>${escapeHtml(p.name)}</h3></a>${stockMarkup(p,featured)}<div class="product-bottom"><strong>${formatPrice(p.price)}</strong>${actionMarkup}</div></div></article>`}
-function renderProducts(list,id){const el=document.getElementById(id);if(!el)return;const featured=id==='featuredProducts';el.classList.toggle('featured-grid',featured);el.innerHTML=(list||[]).length?(list||[]).map(p=>productCard(p,featured)).join(''):'<div class="fidda-coming-soon">قريباً...</div>';initReveal();updateAllCustomerStockUI()}
+function renderProducts(list,id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const featured=id==='featuredProducts';
+  el.classList.toggle('featured-grid',featured);
+  const items=Array.isArray(list)?list:[];
+  if(items.length){
+    el.innerHTML=items.map(p=>productCard(p,featured)).join('');
+  }else if(featured){
+    el.innerHTML='<div class="fidda-empty-products" role="status">لا توجد منتجات</div>';
+  }else{
+    el.innerHTML='<div class="fidda-coming-soon">قريباً...</div>';
+  }
+  initReveal();
+  updateAllCustomerStockUI();
+}
 function renderRelatedProducts(currentId){const el=document.getElementById('relatedProducts');const section=document.getElementById('relatedProductsSection');if(!el)return;const current=getProducts().find(p=>Number(p.id)===Number(currentId));if(!current){if(section)section.classList.add('hidden');return}const all=getProducts().filter(p=>Number(p.id)!==Number(currentId));const sameCategory=all.filter(p=>p.category===current.category);const others=all.filter(p=>p.category!==current.category);const list=[...sameCategory,...others].slice(0,4);if(!list.length){el.innerHTML='';if(section)section.classList.add('hidden');return}if(section)section.classList.remove('hidden');el.innerHTML=list.map(productCard).join('');initReveal();updateAllCustomerStockUI()}
 
 function renderHomeCategories(){const el=document.getElementById('homeCategories');if(!el)return;el.innerHTML=getCategories().map((c,i)=>`<a class="category-card reveal" style="background-image:url('${escapeHtml(c.image)}')" href="products.html?category=${encodeURIComponent(c.name)}"><span>0${i+1}</span><h3>${escapeHtml(c.name)}</h3><small>اكتشف المجموعة</small></a>`).join('');initReveal()}

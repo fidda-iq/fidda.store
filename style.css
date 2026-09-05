@@ -2047,3 +2047,18 @@ body.lightbox-open{overflow:hidden}
 body > .fidda-loader-text{display:none!important;}
 .header-cart-count{transition:transform .16s ease,opacity .16s ease;}
 .header-cart-count[data-count]:not([data-count='0']){transform:scale(1.04);}
+
+/* V60 FIX — clear empty featured-products state */
+.fidda-empty-products{
+  width:100%;
+  min-height:120px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:28px 16px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;
+  color:rgba(255,255,255,.72);
+  font-size:15px;
+  text-align:center;
+}

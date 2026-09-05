@@ -20,12 +20,52 @@ const FIDDA_ADMIN_CACHE_PRODUCTS='fiddaAdminProductsCache_v7';
 const FIDDA_ADMIN_CACHE_CATEGORIES='fiddaAdminCategoriesCache_v1';
 const FIDDA_ADMIN_PAGE=!!document.body?.classList.contains('admin-body') || location.pathname.toLowerCase().endsWith('/admin.html');
 
-function fiddaReadCache(){try{const pk=FIDDA_ADMIN_PAGE?FIDDA_ADMIN_CACHE_PRODUCTS:FIDDA_CACHE_PRODUCTS;const ck=FIDDA_ADMIN_PAGE?FIDDA_ADMIN_CACHE_CATEGORIES:FIDDA_CACHE_CATEGORIES;const p=JSON.parse(localStorage.getItem(pk)||'[]');const c=JSON.parse(localStorage.getItem(ck)||'[]');if(Array.isArray(p)&&p.length){window.FIDDA_PRODUCTS=p;window.FIDDA_CATEGORIES=Array.isArray(c)?c:[];return true}}catch(e){}return false}
+function fiddaReadCache(){
+  try{
+    const pk=FIDDA_ADMIN_PAGE?FIDDA_ADMIN_CACHE_PRODUCTS:FIDDA_CACHE_PRODUCTS;
+    const ck=FIDDA_ADMIN_PAGE?FIDDA_ADMIN_CACHE_CATEGORIES:FIDDA_CACHE_CATEGORIES;
+    const rawP=localStorage.getItem(pk);
+    const rawC=localStorage.getItem(ck);
+    // An empty [] is meaningful: it means the catalog is intentionally empty.
+    if(rawP!==null){
+      const p=JSON.parse(rawP);
+      const c=rawC===null?[]:JSON.parse(rawC);
+      if(Array.isArray(p)){
+        window.FIDDA_PRODUCTS=p;
+        window.FIDDA_CATEGORIES=Array.isArray(c)?c:[];
+        return true;
+      }
+    }
+  }catch(e){}
+  return false;
+}
 function fiddaWriteCache(products,categories){try{const pk=FIDDA_ADMIN_PAGE?FIDDA_ADMIN_CACHE_PRODUCTS:FIDDA_CACHE_PRODUCTS;const ck=FIDDA_ADMIN_PAGE?FIDDA_ADMIN_CACHE_CATEGORIES:FIDDA_CACHE_CATEGORIES;localStorage.setItem(pk,JSON.stringify(products));localStorage.setItem(ck,JSON.stringify(categories));if(!FIDDA_ADMIN_PAGE)localStorage.setItem(FIDDA_CACHE_TIME,String(Date.now()))}catch(e){}}
 window.fiddaHasCache=fiddaReadCache();
 
 // V56 STORE FIX — all helpers used by the store client are defined here.
 // This file must be self-contained because it is loaded BEFORE products.js.
+// V60 FIX — image URLs are transformed for fast Supabase Storage delivery.
+// This helper must exist in the STORE client because products.js calls it before rendering.
+function fiddaFastImageUrl(src,width=720,quality=76){
+  const raw=String(src||'').trim();
+  if(!raw)return '';
+  try{
+    const u=new URL(raw,location.href);
+    const marker='/storage/v1/object/public/';
+    const i=u.pathname.indexOf(marker);
+    // Keep external/CDN images unchanged.
+    if(i<0 || !/\.supabase\.co$/i.test(u.hostname)) return raw;
+    const objectPath=u.pathname.slice(i+marker.length);
+    if(!objectPath)return raw;
+    const w=Math.max(120,Math.round(Number(width)||720));
+    const q=Math.max(45,Math.min(90,Math.round(Number(quality)||76)));
+    return `${u.origin}/storage/v1/render/image/public/${objectPath}?width=${w}&height=${w}&resize=cover&quality=${q}`;
+  }catch(e){
+    return raw;
+  }
+}
+window.fiddaFastImageUrl=fiddaFastImageUrl;
+
 function readLocalArray(key){
   try{
     const value=localStorage.getItem(key);

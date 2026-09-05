@@ -32,7 +32,19 @@ function getRingTotalVisibleStock(p){if(!isRingCategory(p))return 0;return (Arra
 let __fiddaProductsSource=null,__fiddaProductsCache=null,__fiddaProductsRevision=0,__fiddaProductsCacheRevision=-1;
 function invalidateProductsCache(){__fiddaProductsRevision++}
 function setProductsState(list){window.FIDDA_PRODUCTS=Array.isArray(list)?list:[];invalidateProductsCache();return window.FIDDA_PRODUCTS}
-function getProducts(){const source=Array.isArray(window.FIDDA_PRODUCTS)?window.FIDDA_PRODUCTS:DEFAULT_PRODUCTS;if(source===__fiddaProductsSource&&__fiddaProductsCache&&__fiddaProductsCacheRevision===__fiddaProductsRevision)return __fiddaProductsCache;__fiddaProductsSource=source;__fiddaProductsCache=source.map(normalizeProduct).sort((a,b)=>{const ao=Number.isFinite(Number(a.sort_order))?Number(a.sort_order):0,bo=Number.isFinite(Number(b.sort_order))?Number(b.sort_order):0;return ao-bo || Number(a.id)-Number(b.id)});__fiddaProductsCacheRevision=__fiddaProductsRevision;return __fiddaProductsCache}
+function getProducts(){
+  const source=Array.isArray(window.FIDDA_PRODUCTS)?window.FIDDA_PRODUCTS:DEFAULT_PRODUCTS;
+  if(source===__fiddaProductsSource&&__fiddaProductsCache&&__fiddaProductsCacheRevision===__fiddaProductsRevision)return __fiddaProductsCache;
+  __fiddaProductsSource=source;
+  const seen=new Set(),unique=[];
+  for(const raw of source){
+    const p=normalizeProduct(raw),key=Number.isFinite(Number(p.id))?`id:${Number(p.id)}`:`pending:${String(p.name||'').trim().toLowerCase()}|${String(p.category||'').trim().toLowerCase()}`;
+    if(seen.has(key))continue;seen.add(key);unique.push(p);
+  }
+  __fiddaProductsCache=unique.sort((a,b)=>{const ao=Number.isFinite(Number(a.sort_order))?Number(a.sort_order):0,bo=Number.isFinite(Number(b.sort_order))?Number(b.sort_order):0;return ao-bo || Number(a.id)-Number(b.id)});
+  __fiddaProductsCacheRevision=__fiddaProductsRevision;
+  return __fiddaProductsCache;
+}
 function getCategories(){return window.FIDDA_CATEGORIES||DEFAULT_CATEGORIES}
 function saveProducts(x){return setProductsState((x||[]).map(normalizeProduct))}
 function saveCategories(x){window.FIDDA_CATEGORIES=x||[];return window.FIDDA_CATEGORIES}
@@ -430,6 +442,11 @@ window.addEventListener('fidda-data-changed',event=>{
       return;
     }
     let list=current.filter(p=>payload.eventType!=='DELETE'||Number(p.id)!==Number(next.id));
+    if(payload.eventType==='INSERT'){
+      // إذا كان هناك منتج تفاؤلي مؤقت (id=null) من نفس عملية الإضافة، استبدله بالصف السلطوي
+      // بدل عرض المنتج مرتين عند وصول Realtime.
+      list=list.filter(p=>Number.isFinite(Number(p.id)) || !(String(p.name||'').trim()===String(next.name||'').trim() && String(p.category||'').trim()===String(next.category||'').trim()));
+    }
     if(payload.eventType==='INSERT'||payload.eventType==='UPDATE'){
       const i=list.findIndex(p=>Number(p.id)===Number(next.id));
       if(i>=0)list[i]=next; else list.unshift(next);

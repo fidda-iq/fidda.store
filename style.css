@@ -2163,3 +2163,34 @@ body > .fidda-loader-text{display:none!important;}
 }
 /* Keep the benefits surfaces distinctly white against the new gradient. */
 .fidda-benefit-icon,.fidda-gift-banner{background:#fff !important}
+
+/* V76 — soft white highlight around black section headings */
+.section:not(.dark-section){
+  background:
+    radial-gradient(ellipse 48% 30% at 50% 14%,rgba(255,255,255,.98) 0%,rgba(255,255,255,.78) 30%,rgba(255,255,255,.26) 58%,rgba(255,255,255,0) 100%),
+    radial-gradient(ellipse 34% 24% at 50% 31%,rgba(255,255,255,.58) 0%,rgba(255,255,255,.18) 52%,rgba(255,255,255,0) 100%),
+    radial-gradient(ellipse at 8% 4%,rgba(255,255,255,.82) 0%,rgba(255,255,255,0) 30%),
+    radial-gradient(ellipse at 88% 88%,rgba(169,169,167,.45) 0%,rgba(169,169,167,0) 36%),
+    linear-gradient(125deg,#f5f5f3 0%,#e1e1df 22%,#c4c4c2 47%,#ededeb 68%,#b8b8b6 100%) !important;
+  background-size:100% 100%,100% 100%,100% 100%,100% 100%,140% 140% !important;
+  background-position:center,center,center,center,0% 50% !important;
+}
+
+/* Keep the white glow elegant and aligned with the heading area. */
+.section > h1,.section > h2,.section > h3,
+.section .section-title,.section .section-heading,
+.section .title,.section .section-header h1,.section .section-header h2,
+.section .section-head h1,.section .section-head h2{
+  position:relative;
+  z-index:2;
+}
+
+/* Benefits remain clean white, with the surrounding gradient visible. */
+.fidda-benefits-section{
+  background:
+    radial-gradient(ellipse 52% 30% at 50% 12%,rgba(255,255,255,1) 0%,rgba(255,255,255,.82) 34%,rgba(255,255,255,.28) 64%,rgba(255,255,255,0) 100%),
+    radial-gradient(ellipse 38% 25% at 50% 34%,rgba(255,255,255,.64) 0%,rgba(255,255,255,.16) 58%,rgba(255,255,255,0) 100%),
+    radial-gradient(ellipse at 0% 0%,rgba(255,255,255,.92) 0%,rgba(255,255,255,0) 40%),
+    radial-gradient(ellipse at 100% 100%,rgba(125,125,123,.50) 0%,rgba(125,125,123,0) 45%),
+    linear-gradient(135deg,#ffffff 0%,#eeeeec 24%,#d4d4d2 52%,#b8b8b6 78%,#a6a6a4 100%) !important;
+}

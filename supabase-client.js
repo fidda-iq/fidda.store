@@ -87,7 +87,8 @@ function normalizeProduct(p){
     sort_order:Number.isFinite(Number(p?.sort_order))?Number(p.sort_order):0,
     stock:sizes.length?sizeStock:baseStock,
     sizes,
-    images:(Array.isArray(p?.images)&&p.images.length?p.images:[p?.image||'']).filter(Boolean),
+    // [] قيمة صحيحة: إذا حذف المدير كل الصور فلا نعيد legacy image تلقائيًا.
+    images:Array.isArray(p?.images)?p.images.filter(Boolean):(p?.image?[p.image]:[]),
     material:p?.material||'فضة',
     payment:p?.payment||'الدفع عند الاستلام',
     customFields:Array.isArray(p?.customFields)?p.customFields.filter(x=>x&&String(x.label||'').trim()&&String(x.value||'').trim()).map(x=>({label:String(x.label).trim(),value:String(x.value).trim()})):[],

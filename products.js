@@ -365,8 +365,7 @@ window.addEventListener('storage',e=>{
 window.addEventListener('fidda-db-ready',syncVisibleStoreAfterDataRefresh);
 // تصحيح لحظي واحد بعد إعادة اتصال Realtime فقط؛ لا يوجد polling دوري.
 window.addEventListener('fidda-realtime-reconcile',event=>{
-  const table=event.detail?.table;
-  if(table==='products' && !document.body?.classList.contains('admin-body')) refreshStoreData({quiet:true}).catch(()=>{});
+  // V59: reconnect فقط يرسل إشارة للمصالحة؛ لا نكرر طلبات الشبكة إذا كان الحدث قد طُبّق لحظيًا.
 });
 const FIDDA_LIVE_SYNC_KEY='fiddaLiveSync_v2';
 function persistLiveProducts(list){

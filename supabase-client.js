@@ -123,7 +123,7 @@ async function ensureFiddaSupabase(){
 
 async function fiddaFetchCatalog(){
   const db=await ensureFiddaSupabase();
-  // V58: direct public SELECT is the fast path. The previous V57 path called
+  // V59: direct public SELECT is the fast path. The previous V57 path called
   // one or more RPCs first and then sometimes repeated the same catalog query,
   // which could leave a fresh browser on "جار التحميل..." for too long.
   // The database remains the source of truth; RPC is only a fallback if SELECT
@@ -163,7 +163,7 @@ async function fiddaDbInit(){
   window.__fiddaDbInitPromise=(async()=>{
     try{
       await ensureFiddaSupabase();
-      // V58: get the catalog first. Realtime subscription is background work and
+      // V59: get the catalog first. Realtime subscription is background work and
       // must never delay the first product render.
       const catalog=await fiddaFetchCatalog();
       const products=catalog.products,categories=catalog.categories;
@@ -195,11 +195,14 @@ function startFiddaRealtime(){
     const p=payload?.payload||payload||{};
     if(p.type==='order-stock-optimistic')window.dispatchEvent(new CustomEvent('fidda-order-stock-optimistic',{detail:p}));
   });
-  // Postgres Realtime: يصل تغير المخزون/القياسات/الترتيب فورًا للزبائن.
-  for(const event of ['INSERT','UPDATE','DELETE']){
-    channel.on('postgres_changes',{event,schema:'public',table:'products'},payload=>{
-      window.dispatchEvent(new CustomEvent('fidda-data-changed',{detail:{table:'products',eventType:event,new:payload.new,old:payload.old,source:'postgres_changes'}}));
-    });
+  // V59: Postgres Realtime للمنتجات والأقسام. نطبّق الحدث نفسه على الواجهة فور وصوله،
+  // ولا نعيد تحميل الكتالوج كاملًا بعد كل تغيير. إعادة القراءة الكاملة تكون فقط بعد reconnect.
+  for(const table of ['products','categories']){
+    for(const event of ['INSERT','UPDATE','DELETE']){
+      channel.on('postgres_changes',{event,schema:'public',table},payload=>{
+        window.dispatchEvent(new CustomEvent('fidda-data-changed',{detail:{table,eventType:event,new:payload.new,old:payload.old,source:'postgres_changes'}}));
+      });
+    }
   }
   channel.subscribe(status=>{
       fiddaProductsRealtimeStatus=status;emitFiddaRealtimeStatus('products',status);

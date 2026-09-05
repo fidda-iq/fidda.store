@@ -123,35 +123,11 @@ async function ensureFiddaSupabase(){
 
 async function fiddaFetchCatalog(){
   const db=await ensureFiddaSupabase();
-  // المصدر السلطوي للمتجر: RPC الذي يقرأ public.products مباشرة داخل قاعدة البيانات.
-  // هذا يتجاوز أي اختلاف في RLS أو schema cache ويضمن وصول المنتجات الجديدة.
-  const rpcNames=['fidda_get_public_catalog','fidda_catalog_v49'];
-  let lastError=null;
-  for(const fn of rpcNames){
-    try{
-      const {data,error}=await db.rpc(fn);
-      if(!error && data && Array.isArray(data.products) && Array.isArray(data.categories)){
-        const rpcProducts=data.products.map(rowToProduct);
-        const rpcCategories=data.categories.map(rowToCategory);
-        // لا تسمح لاستجابة فارغة عابرة من RPC بأن تمسح كتالوجًا موجودًا.
-        if(rpcProducts.length===0){
-          try{
-            const [pr,cr]=await Promise.all([
-              db.from('products').select('*').order('sort_order',{ascending:true,nullsFirst:false}).order('created_at',{ascending:true,nullsFirst:false}).order('id',{ascending:true}),
-              db.from('categories').select('*').order('sort_order',{ascending:true,nullsFirst:false}).order('created_at',{ascending:true,nullsFirst:false}).order('id',{ascending:true})
-            ]);
-            if(!pr.error && !cr.error && Array.isArray(pr.data) && pr.data.length){
-              return {products:pr.data.map(rowToProduct),categories:Array.isArray(cr.data)?cr.data.map(rowToCategory):rpcCategories};
-            }
-          }catch(_){}
-        }
-        return {products:rpcProducts,categories:rpcCategories};
-      }
-      if(error) lastError=error;
-    }catch(e){ lastError=e; }
-  }
-  // fallback أخير: القراءة المباشرة. لا نعتبر النتيجة صالحة إلا إذا كانت
-  // products نفسها قابلة للقراءة، حتى لا نستبدل كتالوجًا صحيحًا بقائمة فارغة.
+  // V58: direct public SELECT is the fast path. The previous V57 path called
+  // one or more RPCs first and then sometimes repeated the same catalog query,
+  // which could leave a fresh browser on "جار التحميل..." for too long.
+  // The database remains the source of truth; RPC is only a fallback if SELECT
+  // is unavailable in the current Supabase schema/RLS configuration.
   try{
     const [pr,cr]=await Promise.all([
       db.from('products').select('*').order('sort_order',{ascending:true,nullsFirst:false}).order('created_at',{ascending:true,nullsFirst:false}).order('id',{ascending:true}),
@@ -160,10 +136,22 @@ async function fiddaFetchCatalog(){
     if(!pr.error && !cr.error && Array.isArray(pr.data) && Array.isArray(cr.data)){
       return {products:pr.data.map(rowToProduct),categories:cr.data.map(rowToCategory)};
     }
-    if(pr.error) lastError=pr.error;
-    else if(cr.error) lastError=cr.error;
-  }catch(e){ lastError=e; }
-  throw lastError || new Error('تعذر قراءة كتالوج المنتجات');
+    const firstError=pr.error||cr.error;
+    console.warn('FIDDA direct catalog read failed; trying RPC fallback',firstError);
+  }catch(e){ console.warn('FIDDA direct catalog read failed; trying RPC fallback',e); }
+
+  const rpcNames=['fidda_get_public_catalog','fidda_catalog_v49'];
+  let lastError=null;
+  for(const fn of rpcNames){
+    try{
+      const {data,error}=await db.rpc(fn);
+      if(!error && data && Array.isArray(data.products) && Array.isArray(data.categories)){
+        return {products:data.products.map(rowToProduct),categories:data.categories.map(rowToCategory)};
+      }
+      if(error)lastError=error;
+    }catch(e){lastError=e;}
+  }
+  throw lastError||new Error('تعذر قراءة كتالوج المنتجات');
 }
 
 async function fiddaDbInit(){
@@ -174,16 +162,15 @@ async function fiddaDbInit(){
   }
   window.__fiddaDbInitPromise=(async()=>{
     try{
-      const db=await ensureFiddaSupabase();
-      // المتجر يحتاج قناة المنتجات فقط. لا نفتح قناة الطلبات/الزيارات هنا.
-      startFiddaRealtime();
+      await ensureFiddaSupabase();
+      // V58: get the catalog first. Realtime subscription is background work and
+      // must never delay the first product render.
       const catalog=await fiddaFetchCatalog();
-      let products=catalog.products,categories=catalog.categories;
-      // لا نكتب بيانات المنتجات تلقائيًا عند القراءة؛ قاعدة البيانات هي المصدر الوحيد للحقيقة.
-      if(!categories.length){const local=readLocalArray('fiddaCategories');if(local.length){const {data,error}=await db.from('categories').insert(local.map(categoryToRow)).select('*');if(error)throw error;categories=(data||[]).map(rowToCategory)}}
-      if(!categories.length){const {data,error}=await db.from('categories').insert(DEFAULT_CATEGORIES.map(categoryToRow)).select('*');if(error)throw error;categories=(data||[]).map(rowToCategory)}
+      const products=catalog.products,categories=catalog.categories;
       window.FIDDA_PRODUCTS=products;window.FIDDA_CATEGORIES=categories;fiddaWriteCache(products,categories);window.FIDDA_DB_READY=true;window.FIDDA_DB_ERROR='';
       window.dispatchEvent(new CustomEvent('fidda-db-ready'));
+      // Start live synchronization only after the first authoritative render.
+      startFiddaRealtime();
     }catch(err){
       console.error('Supabase:',err);window.FIDDA_DB_ERROR=err.message||String(err);
       window.FIDDA_PRODUCTS=readLocalArray('fiddaProducts').map(normalizeProduct);window.FIDDA_CATEGORIES=readLocalArray('fiddaCategories');
@@ -218,9 +205,12 @@ function startFiddaRealtime(){
       fiddaProductsRealtimeStatus=status;emitFiddaRealtimeStatus('products',status);
       if(status==='SUBSCRIBED'){
         window.dispatchEvent(new CustomEvent('fidda-realtime-ready',{detail:{table:'products'}}));
-        // تحقق فوري من المصدر بعد الاشتراك حتى يظهر أي منتج أُضيف قبل اتصال القناة.
-        setTimeout(()=>fiddaRealtimeFallbackRefresh().catch(()=>{}),0);
-        if(fiddaProductsEverSubscribed)window.dispatchEvent(new CustomEvent('fidda-realtime-reconcile',{detail:{table:'products',reason:'reconnect'}}));
+        // لا نعيد تحميل الكتالوج عند أول اشتراك؛ تم تحميله قبل فتح القناة.
+        // عند إعادة الاتصال فقط نطلب مصالحة سريعة للتأكد من عدم تفويت حدث.
+        if(fiddaProductsEverSubscribed){
+          setTimeout(()=>fiddaRealtimeFallbackRefresh().catch(()=>{}),0);
+          window.dispatchEvent(new CustomEvent('fidda-realtime-reconcile',{detail:{table:'products',reason:'reconnect'}}));
+        }
         fiddaProductsEverSubscribed=true;
       }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
         if(fiddaProductsChannel===channel)fiddaProductsChannel=null;

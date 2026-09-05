@@ -63,14 +63,12 @@ async function fiddaDbInit(){
       const db=await ensureFiddaSupabase();
       // المتجر يحتاج قناة المنتجات فقط. لا نفتح قناة الطلبات/الزيارات هنا.
       startFiddaRealtime();
-      const {data:catalog,error:catalogError}=await db.rpc('fidda_get_public_catalog');
+      const {data:catalog,error:catalogError}=await db.rpc('fidda_catalog_v49');
       if(catalogError)throw catalogError;
       let products=(Array.isArray(catalog?.products)?catalog.products:[]).map(rowToProduct),categories=(Array.isArray(catalog?.categories)?catalog.categories:[]).map(rowToCategory);
-      // هذا المسار القديم يُستخدم فقط إذا كانت قاعدة البيانات فارغة تمامًا.
-      if(!products.length){const local=readLocalArray('fiddaProducts');if(local.length){const {data,error}=await db.from('products').insert(local.map(productToRow)).select('*');if(error)throw error;products=(data||[]).map(rowToProduct)}}
+      // لا نكتب بيانات المنتجات تلقائيًا عند القراءة؛ قاعدة البيانات هي المصدر الوحيد للحقيقة.
       if(!categories.length){const local=readLocalArray('fiddaCategories');if(local.length){const {data,error}=await db.from('categories').insert(local.map(categoryToRow)).select('*');if(error)throw error;categories=(data||[]).map(rowToCategory)}}
       if(!categories.length){const {data,error}=await db.from('categories').insert(DEFAULT_CATEGORIES.map(categoryToRow)).select('*');if(error)throw error;categories=(data||[]).map(rowToCategory)}
-      if(!products.length){const {data,error}=await db.from('products').insert(DEFAULT_PRODUCTS.map(productToRow)).select('*');if(error)throw error;products=(data||[]).map(rowToProduct)}
       window.FIDDA_PRODUCTS=products;window.FIDDA_CATEGORIES=categories;fiddaWriteCache(products,categories);window.FIDDA_DB_READY=true;window.FIDDA_DB_ERROR='';
       window.dispatchEvent(new CustomEvent('fidda-db-ready'));
     }catch(err){
@@ -120,7 +118,7 @@ function startFiddaRealtime(){
 async function fiddaRealtimeFallbackRefresh(){
   if(!fiddaSupabase)return false;
   try{
-    const {data:catalog,error}=await fiddaSupabase.rpc('fidda_get_public_catalog');
+    const {data:catalog,error}=await fiddaSupabase.rpc('fidda_catalog_v49');
     if(error)throw error;
     const products=(Array.isArray(catalog?.products)?catalog.products:[]).map(rowToProduct);
     const categories=(Array.isArray(catalog?.categories)?catalog.categories:[]).map(rowToCategory);

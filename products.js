@@ -281,7 +281,7 @@ let storeRefreshBusy=false;
 async function refreshStoreData({quiet=true}={}){
   if(!window.fiddaSupabase||storeRefreshBusy)return false;storeRefreshBusy=true;
   try{
-    const {data:catalog,error}=await fiddaSupabase.rpc('fidda_get_public_catalog');
+    const {data:catalog,error}=await fiddaSupabase.rpc('fidda_catalog_v49');
     if(error)throw error;
     const nextProducts=(Array.isArray(catalog?.products)?catalog.products:[]).map(rowToProduct);
     const nextCategories=(Array.isArray(catalog?.categories)?catalog.categories:[]).map(rowToCategory);

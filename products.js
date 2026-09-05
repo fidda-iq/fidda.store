@@ -281,13 +281,12 @@ let storeRefreshBusy=false;
 async function refreshStoreData({quiet=true}={}){
   if(!window.fiddaSupabase||storeRefreshBusy)return false;storeRefreshBusy=true;
   try{
-    const {data:catalog,error}=await fiddaSupabase.rpc('fidda_catalog_v49');
-    if(error)throw error;
-    const nextProducts=(Array.isArray(catalog?.products)?catalog.products:[]).map(rowToProduct);
-    const nextCategories=(Array.isArray(catalog?.categories)?catalog.categories:[]).map(rowToCategory);
+    const catalog=await fiddaFetchCatalog();
+    const nextProducts=catalog.products;
+    const nextCategories=catalog.categories;
     const oldP=JSON.stringify(window.FIDDA_PRODUCTS||[]),oldC=JSON.stringify(window.FIDDA_CATEGORIES||[]);
     setProductsState(nextProducts);window.FIDDA_CATEGORIES=nextCategories;window.FIDDA_DB_READY=true;
-    try{localStorage.setItem('fiddaProductsCache_v3',JSON.stringify(nextProducts));localStorage.setItem('fiddaCategoriesCache_v3',JSON.stringify(nextCategories));localStorage.setItem('fiddaDataCacheTime_v3',String(Date.now()))}catch(e){}
+    try{localStorage.setItem('fiddaProductsCache_v7',JSON.stringify(nextProducts));localStorage.setItem('fiddaCategoriesCache_v3',JSON.stringify(nextCategories));localStorage.setItem('fiddaDataCacheTime_v3',String(Date.now()))}catch(e){}
     __lastStoreRefresh=Date.now();
     if(oldP!==JSON.stringify(nextProducts)||oldC!==JSON.stringify(nextCategories))syncVisibleStoreAfterDataRefresh();
     return true;

@@ -52,6 +52,31 @@ async function ensureFiddaSupabase(){
   return fiddaSupabase;
 }
 
+
+async function fiddaFetchCatalog(){
+  const db=await ensureFiddaSupabase();
+  // نقرأ جدول المنتجات مباشرة أولًا حتى تظهر المنتجات التي أضيفت حديثًا
+  // حتى لو كانت دالة الكتالوج القديمة في Supabase لم تُحدّث بعد.
+  try{
+    const [pr,cr]=await Promise.all([
+      db.from('products').select('*').order('sort_order',{ascending:true,nullsFirst:false}).order('created_at',{ascending:true,nullsFirst:false}).order('id',{ascending:true}),
+      db.from('categories').select('*').order('sort_order',{ascending:true,nullsFirst:false}).order('created_at',{ascending:true,nullsFirst:false}).order('id',{ascending:true})
+    ]);
+    if(!pr.error && !cr.error && Array.isArray(pr.data) && Array.isArray(cr.data) && (pr.data.length || cr.data.length)){
+      return {
+        products:pr.data.map(rowToProduct),
+        categories:cr.data.map(rowToCategory)
+      };
+    }
+  }catch(e){ console.warn('FIDDA direct catalog read:',e); }
+  const {data,error}=await db.rpc('fidda_catalog_v49');
+  if(error)throw error;
+  return {
+    products:(Array.isArray(data?.products)?data.products:[]).map(rowToProduct),
+    categories:(Array.isArray(data?.categories)?data.categories:[]).map(rowToCategory)
+  };
+}
+
 async function fiddaDbInit(){
   if(window.__fiddaDbInitPromise)return window.__fiddaDbInitPromise;
   if(window.fiddaHasCache){
@@ -63,9 +88,8 @@ async function fiddaDbInit(){
       const db=await ensureFiddaSupabase();
       // المتجر يحتاج قناة المنتجات فقط. لا نفتح قناة الطلبات/الزيارات هنا.
       startFiddaRealtime();
-      const {data:catalog,error:catalogError}=await db.rpc('fidda_catalog_v49');
-      if(catalogError)throw catalogError;
-      let products=(Array.isArray(catalog?.products)?catalog.products:[]).map(rowToProduct),categories=(Array.isArray(catalog?.categories)?catalog.categories:[]).map(rowToCategory);
+      const catalog=await fiddaFetchCatalog();
+      let products=catalog.products,categories=catalog.categories;
       // لا نكتب بيانات المنتجات تلقائيًا عند القراءة؛ قاعدة البيانات هي المصدر الوحيد للحقيقة.
       if(!categories.length){const local=readLocalArray('fiddaCategories');if(local.length){const {data,error}=await db.from('categories').insert(local.map(categoryToRow)).select('*');if(error)throw error;categories=(data||[]).map(rowToCategory)}}
       if(!categories.length){const {data,error}=await db.from('categories').insert(DEFAULT_CATEGORIES.map(categoryToRow)).select('*');if(error)throw error;categories=(data||[]).map(rowToCategory)}
@@ -118,10 +142,9 @@ function startFiddaRealtime(){
 async function fiddaRealtimeFallbackRefresh(){
   if(!fiddaSupabase)return false;
   try{
-    const {data:catalog,error}=await fiddaSupabase.rpc('fidda_catalog_v49');
-    if(error)throw error;
-    const products=(Array.isArray(catalog?.products)?catalog.products:[]).map(rowToProduct);
-    const categories=(Array.isArray(catalog?.categories)?catalog.categories:[]).map(rowToCategory);
+    const catalog=await fiddaFetchCatalog();
+    const products=catalog.products;
+    const categories=catalog.categories;
     window.FIDDA_PRODUCTS=products;
     window.FIDDA_CATEGORIES=categories;
     fiddaWriteCache(products,categories);

@@ -24,6 +24,74 @@ function fiddaReadCache(){try{const pk=FIDDA_ADMIN_PAGE?FIDDA_ADMIN_CACHE_PRODUC
 function fiddaWriteCache(products,categories){try{const pk=FIDDA_ADMIN_PAGE?FIDDA_ADMIN_CACHE_PRODUCTS:FIDDA_CACHE_PRODUCTS;const ck=FIDDA_ADMIN_PAGE?FIDDA_ADMIN_CACHE_CATEGORIES:FIDDA_CACHE_CATEGORIES;localStorage.setItem(pk,JSON.stringify(products));localStorage.setItem(ck,JSON.stringify(categories));if(!FIDDA_ADMIN_PAGE)localStorage.setItem(FIDDA_CACHE_TIME,String(Date.now()))}catch(e){}}
 window.fiddaHasCache=fiddaReadCache();
 
+// V56 STORE FIX — all helpers used by the store client are defined here.
+// This file must be self-contained because it is loaded BEFORE products.js.
+function readLocalArray(key){
+  try{
+    const value=localStorage.getItem(key);
+    const parsed=value?JSON.parse(value):[];
+    return Array.isArray(parsed)?parsed:[];
+  }catch(e){ return []; }
+}
+function normalizeProduct(p){
+  const rawSizes=Array.isArray(p?.sizes)?p.sizes:[];
+  const sizes=rawSizes.map(x=>({
+    size:String(x?.size??'').trim(),
+    stock:Math.max(0,Math.floor(Number(x?.stock)||0))
+  })).filter(x=>x.size);
+  const sizeStock=sizes.reduce((a,x)=>a+x.stock,0);
+  const baseStock=Math.max(0,Number.isFinite(Number(p?.stock))?Number(p.stock):0);
+  return {
+    ...p,
+    id:Number(p?.id),
+    sort_order:Number.isFinite(Number(p?.sort_order))?Number(p.sort_order):0,
+    stock:sizes.length?sizeStock:baseStock,
+    sizes,
+    images:(Array.isArray(p?.images)&&p.images.length?p.images:[p?.image||'']).filter(Boolean),
+    material:p?.material||'فضة',
+    payment:p?.payment||'الدفع عند الاستلام',
+    customFields:Array.isArray(p?.customFields)?p.customFields.filter(x=>x&&String(x.label||'').trim()&&String(x.value||'').trim()).map(x=>({label:String(x.label).trim(),value:String(x.value).trim()})):[],
+    featured:!!p?.featured
+  };
+}
+function rowToProduct(r){
+  return normalizeProduct({
+    id:Number(r?.id),
+    name:r?.name||'',
+    category:r?.category||'',
+    price:r?.price,
+    desc:r?.description??r?.desc??'',
+    material:r?.material,
+    payment:r?.payment,
+    images:Array.isArray(r?.images)?r.images:(r?.image?[r.image]:[]),
+    stock:r?.stock,
+    customFields:Array.isArray(r?.custom_fields)?r.custom_fields:[],
+    featured:r?.featured,
+    sizes:Array.isArray(r?.sizes)?r.sizes:[],
+    sort_order:r?.sort_order
+  });
+}
+function rowToCategory(r){
+  return {id:String(r?.id??''),name:r?.name||'',image:r?.image||'',sort_order:Number(r?.sort_order)||0};
+}
+function categoryToRow(c){
+  return {id:String(c?.id??''),name:c?.name||'',image:c?.image||'',sort_order:Number(c?.sort_order)||0};
+}
+
+// Compatibility no-op: the public store only needs product Realtime.
+// Older code may call this name during boot/reconnect.
+function bindFiddaRealtimeRecovery(){
+  if(fiddaRecoveryBound)return;
+  fiddaRecoveryBound=true;
+  const recover=()=>{
+    if(document.visibilityState==='hidden')return;
+    try{ fiddaSupabase?.realtime?.connect?.(); }catch(e){}
+    if(!fiddaProductsChannel && fiddaSupabase) startFiddaRealtime();
+  };
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')recover()});
+  window.addEventListener('online',recover);
+}
+
 function emitFiddaRealtimeStatus(table,status){window.dispatchEvent(new CustomEvent('fidda-realtime-status',{detail:{table,status}}))}
 
 function loadSupabaseLibrary(){
@@ -227,6 +295,10 @@ window.addEventListener('online',()=>trackFiddaStoreVisit());
 window.addEventListener('pageshow',()=>trackFiddaStoreVisit());
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')trackFiddaStoreVisit()});
 
-window.ensureFiddaSupabase=ensureFiddaSupabase;window.fiddaDbInit=fiddaDbInit;window.dbGetProduct=dbGetProduct;window.dbSaveProduct=dbSaveProduct;window.dbDeleteProduct=dbDeleteProduct;window.dbSaveCategory=dbSaveCategory;window.dbDeleteCategory=dbDeleteCategory;window.dbGetOrders=dbGetOrders;window.dbUpdateOrderStatus=dbUpdateOrderStatus;window.dbUpdateOrder=dbUpdateOrder;window.dbDeleteOrder=dbDeleteOrder;window.dbCreateOrder=dbCreateOrder;
-
+window.ensureFiddaSupabase=ensureFiddaSupabase;
+window.fiddaDbInit=fiddaDbInit;
+window.fiddaFetchCatalog=fiddaFetchCatalog;
 window.startFiddaRealtime=startFiddaRealtime;
+window.rowToProduct=rowToProduct;
+window.rowToCategory=rowToCategory;
+

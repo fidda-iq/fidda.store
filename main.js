@@ -1,3 +1,4 @@
+/* FIDDA V69 - visual background experiment only */
 // الوظائف الأساسية للمتجر موجودة في products.js
 
 

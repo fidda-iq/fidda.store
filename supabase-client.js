@@ -63,12 +63,9 @@ async function fiddaDbInit(){
       const db=await ensureFiddaSupabase();
       // المتجر يحتاج قناة المنتجات فقط. لا نفتح قناة الطلبات/الزيارات هنا.
       startFiddaRealtime();
-      const [pr,cr]=await Promise.all([
-        db.from('products').select('*').order('sort_order',{ascending:true,nullsFirst:false}).order('created_at',{ascending:true}),
-        db.from('categories').select('*').order('sort_order',{ascending:true}).order('created_at',{ascending:true})
-      ]);
-      if(pr.error)throw pr.error;if(cr.error)throw cr.error;
-      let products=(pr.data||[]).map(rowToProduct),categories=(cr.data||[]).map(rowToCategory);
+      const {data:catalog,error:catalogError}=await db.rpc('fidda_get_public_catalog');
+      if(catalogError)throw catalogError;
+      let products=(Array.isArray(catalog?.products)?catalog.products:[]).map(rowToProduct),categories=(Array.isArray(catalog?.categories)?catalog.categories:[]).map(rowToCategory);
       // هذا المسار القديم يُستخدم فقط إذا كانت قاعدة البيانات فارغة تمامًا.
       if(!products.length){const local=readLocalArray('fiddaProducts');if(local.length){const {data,error}=await db.from('products').insert(local.map(productToRow)).select('*');if(error)throw error;products=(data||[]).map(rowToProduct)}}
       if(!categories.length){const local=readLocalArray('fiddaCategories');if(local.length){const {data,error}=await db.from('categories').insert(local.map(categoryToRow)).select('*');if(error)throw error;categories=(data||[]).map(rowToCategory)}}
@@ -123,124 +120,10 @@ function startFiddaRealtime(){
 async function fiddaRealtimeFallbackRefresh(){
   if(!fiddaSupabase)return false;
   try{
-    const [pr,cr]=await Promise.all([
-      fiddaSupabase.from('products').select('*').order('created_at',{ascending:false}),
-      fiddaSupabase.from('categories').select('*').order('sort_order',{ascending:true}).order('created_at',{ascending:true})
-    ]);
-    if(pr.error)throw pr.error;if(cr.error)throw cr.error;
-    const products=(pr.data||[]).map(rowToProduct),categories=(cr.data||[]).map(rowToCategory);
-    window.FIDDA_PRODUCTS=products;window.FIDDA_CATEGORIES=categories;fiddaWriteCache(products,categories);window.FIDDA_DB_READY=true;
-    window.dispatchEvent(new CustomEvent('fidda-db-ready',{detail:'reconnect'}));return true;
-  }catch(e){console.warn('FIDDA realtime reconcile failed',e);return false}
-}
-function recoverFiddaRealtimeNow(){
-  if(!fiddaSupabase||document.visibilityState==='hidden')return;
-  try{fiddaSupabase.realtime?.connect?.()}catch(e){}
-  startFiddaRealtime();
-}
-function bindFiddaRealtimeRecovery(){
-  if(fiddaRecoveryBound)return;fiddaRecoveryBound=true;
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')recoverFiddaRealtimeNow()});
-  window.addEventListener('online',recoverFiddaRealtimeNow);
-}
-
-function readLocalArray(k){try{const x=localStorage.getItem(k);return x?JSON.parse(x):[]}catch(e){return[]}}
-function productToRow(p){return {id:Number(p.id),name:p.name,category:p.category,price:Number(p.price)||0,description:p.desc||'',material:p.material||'فضة',payment:p.payment||'الدفع عند الاستلام',images:Array.isArray(p.images)?p.images:[],stock:Math.max(0,Number(p.stock)||0),custom_fields:Array.isArray(p.customFields)?p.customFields:[],featured:!!p.featured,sizes:Array.isArray(p.sizes)?p.sizes:[],sort_order:Number.isFinite(Number(p.sort_order))?Number(p.sort_order):0}}
-function rowToProduct(r){return normalizeProduct({id:Number(r.id),name:r.name,category:r.category,price:r.price,desc:r.description,material:r.material,payment:r.payment,images:r.images||[],stock:r.stock,customFields:r.custom_fields||[],featured:r.featured,sizes:Array.isArray(r.sizes)?r.sizes:[],sort_order:r.sort_order})}
-function categoryToRow(c){return {id:String(c.id),name:c.name,image:c.image||'',sort_order:0}}
-function rowToCategory(r){return {id:String(r.id),name:r.name,image:r.image||''}}
-async function dbGetProduct(id){const db=await ensureFiddaSupabase();const {data,error}=await db.from('products').select('*').eq('id',id).single();if(error)throw error;return rowToProduct(data)}
-async function dbSaveProduct(product){
-  const db=await ensureFiddaSupabase();
-  const p=normalizeProduct(product||{});
-  const args={
-    p_name:String(p.name||''),p_category:String(p.category||''),p_price:Number(p.price)||0,
-    p_description:String(p.desc||''),p_material:String(p.material||'فضة'),
-    p_payment:String(p.payment||'الدفع عند الاستلام'),p_images:Array.isArray(p.images)?p.images:[],
-    p_stock:Math.max(0,Math.floor(Number(p.stock)||0)),
-    p_custom_fields:Array.isArray(p.customFields)?p.customFields:[],p_featured:!!p.featured,
-    p_sizes:Array.isArray(p.sizes)?p.sizes:[],p_sort_order:Number.isFinite(Number(p.sort_order))?Number(p.sort_order):2147483647
-  };
-  let data,error;
-  if(p.id) ({data,error}=await db.rpc('fidda_update_product',{...args,p_id:Number(p.id)}));
-  else ({data,error}=await db.rpc('fidda_create_product',args));
-  if(error)throw error;
-  return rowToProduct(data);
-}
-async function dbDeleteProduct(id){
-  const db=await ensureFiddaSupabase();
-  const {error}=await db.from('products').delete().eq('id',id);
-  if(error)throw error;
-  broadcastFiddaLiveChange({type:'products',eventType:'DELETE',old:{id:Number(id)},at:Date.now()});
-}
-async function dbSaveCategory(category){
-  const db=await ensureFiddaSupabase();
-  const row=categoryToRow(category);
-  const {data,error}=await db.from('categories').upsert(row,{onConflict:'id'}).select('*').single();
-  if(error)throw error;
-  const saved=rowToCategory(data);
-  broadcastFiddaLiveChange({type:'categories',eventType:'UPDATE',new:data,at:Date.now()});
-  return saved;
-}
-async function dbDeleteCategory(id){
-  const db=await ensureFiddaSupabase();
-  const {error}=await db.from('categories').delete().eq('id',id);
-  if(error)throw error;
-  broadcastFiddaLiveChange({type:'categories',eventType:'DELETE',old:{id:String(id)},at:Date.now()});
-}
-async function dbGetOrders(){
-  const db=await ensureFiddaSupabase();
-  const {data,error}=await db.from('orders').select('id,customer,items,subtotal,delivery,total,status,created_at,updated_at,status_history').order('created_at',{ascending:false}).limit(1000);
-  if(error)throw error;
-  return (data||[]).map(r=>({id:r.id,customer:r.customer||{},items:r.items||[],subtotal:r.subtotal??0,delivery:r.delivery??0,total:r.total??0,createdAt:r.created_at,updatedAt:r.updated_at||r.created_at,status:r.status||'جديد',statusHistory:Array.isArray(r.status_history)?r.status_history:[]}));
-}
-async function dbUpdateOrderStatus(id,status){
-  const db=await ensureFiddaSupabase();
-  const {data,error}=await db.rpc('fidda_set_order_status',{p_id:String(id),p_status:status});
-  if(error)throw error;
-  try{
-    const {data:row}=await db.from('orders').select('id,customer,items,subtotal,delivery,total,status,created_at,updated_at,status_history').eq('id',id).single();
-    if(row)broadcastFiddaLiveChange({type:'orders',eventType:'UPDATE',new:row,at:Date.now()});
-  }catch(e){}
-  return data;
-}
-async function dbUpdateOrder(id,customer,subtotal,delivery,total,status){
-  const db=await ensureFiddaSupabase();
-  const {data,error}=await db.rpc('fidda_update_order',{p_id:String(id),p_customer:customer,p_subtotal:subtotal,p_delivery:delivery,p_total:total,p_status:status});
-  if(error)throw error;
-  try{
-    const {data:row}=await db.from('orders').select('id,customer,items,subtotal,delivery,total,status,created_at,updated_at,status_history').eq('id',id).single();
-    if(row)broadcastFiddaLiveChange({type:'orders',eventType:'UPDATE',new:row,at:Date.now()});
-  }catch(e){}
-  return data;
-}
-async function dbDeleteOrder(id){
-  const db=await ensureFiddaSupabase();
-  const {data,error}=await db.rpc('fidda_delete_order',{p_id:String(id)});
-  if(error)throw error;
-  broadcastFiddaLiveChange({type:'orders',eventType:'DELETE',old:{id},at:Date.now()});
-  return data||{id};
-}
-async function dbCreateOrder(customer,items,subtotal,delivery,total){
-  const db=await ensureFiddaSupabase();
-  const {data,error}=await db.rpc('fidda_create_order',{p_customer:customer,p_items:items,p_subtotal:subtotal,p_delivery:delivery,p_total:total});
-  if(error)throw error;
-  // نتيجة الـRPC هي النتيجة المؤكدة من المعاملة؛ لا ننتظر SELECT إضافيًا.
-  return data;
-}
-
-
-async function fiddaRealtimeFallbackRefresh(){
-  if(!fiddaSupabase)return false;
-  try{
-    const [pr,cr]=await Promise.all([
-      fiddaSupabase.from('products').select('*').order('created_at',{ascending:false}),
-      fiddaSupabase.from('categories').select('*').order('sort_order',{ascending:true}).order('created_at',{ascending:true})
-    ]);
-    if(pr.error)throw pr.error;
-    if(cr.error)throw cr.error;
-    const products=(pr.data||[]).map(rowToProduct);
-    const categories=(cr.data||[]).map(rowToCategory);
+    const {data:catalog,error}=await fiddaSupabase.rpc('fidda_get_public_catalog');
+    if(error)throw error;
+    const products=(Array.isArray(catalog?.products)?catalog.products:[]).map(rowToProduct);
+    const categories=(Array.isArray(catalog?.categories)?catalog.categories:[]).map(rowToCategory);
     window.FIDDA_PRODUCTS=products;
     window.FIDDA_CATEGORIES=categories;
     fiddaWriteCache(products,categories);
@@ -252,7 +135,6 @@ async function fiddaRealtimeFallbackRefresh(){
     return false;
   }
 }
-
 
 
 // إحصاء زيارات المتجر — تسجيل خفيف وفوري، والإحصائيات تُحدّث في لوحة الإدارة عبر Realtime.

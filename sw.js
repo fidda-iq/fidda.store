@@ -1,4 +1,4 @@
-const CACHE = "fidda-store-v2-live-v15-v83";
+const CACHE = "fidda-store-v2-live-v16-v84";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -10,11 +10,11 @@ const APP_SHELL = [
   "./main.js",
   "./products.js",
   "./supabase-client.js",
-  "./fidda-header-logo.png",
-  "./logo.png",
-  "./hero-bg.jpg",
-  "./hero-logo.png",
-  "./hero-logo-transparent.png",
+  "./fidda-header-logo.webp",
+  "./logo.webp",
+  "./hero-bg.webp",
+  "./hero-logo.webp",
+  "./hero-logo-transparent.webp",
   "./icon-192.png",
   "./icon-512.png",
   "./manifest.json"

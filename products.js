@@ -1,12 +1,12 @@
-/* فِضّة FIDDA — متجر الزبائن | V83 fixed secure order */
+/* فِضّة FIDDA — متجر الزبائن | V84 fixed secure order */
 const DELIVERY_FEE = 5000;
 const CART_KEY = 'fiddaCart';
 
 const DEFAULT_CATEGORIES = [
-  {id:'rings',name:'خواتم',image:'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=900&q=80'},
-  {id:'necklaces',name:'سلاسل',image:'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=900&q=80'},
-  {id:'bracelets',name:'أساور',image:'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=900&q=80'},
-  {id:'earrings',name:'أقراط',image:'https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&w=900&q=80'}
+  {id:'rings',name:'خواتم',image:'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=720&q=72'},
+  {id:'necklaces',name:'سلاسل',image:'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=720&q=72'},
+  {id:'bracelets',name:'أساور',image:'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=720&q=72'},
+  {id:'earrings',name:'أقراط',image:'https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&w=720&q=72'}
 ];
 const DEFAULT_PRODUCTS = [
   {id:1,name:'خاتم فضي كلاسيكي',category:'خواتم',price:35000,desc:'خاتم فضة بتصميم ناعم وأنيق للاستخدام اليومي',material:'فضة',payment:'الدفع عند الاستلام',images:[DEFAULT_CATEGORIES[0].image],stock:5,featured:true},

@@ -1,0 +1,14 @@
+FIDDA V84 — Performance changes
+
+1) Local WebP assets added for header/footer logos and hero assets.
+2) Original source images are retained; live HTML/CSS now use optimized WebP assets.
+3) Homepage preloads hero background and header logo.
+4) All store pages preconnect to Supabase.
+5) Cache-busting updated to V84.
+6) Service Worker cache namespace updated to V84 and includes optimized assets.
+7) Supabase remains lazy/background-loaded; cached catalog still renders immediately.
+8) Product image lazy-loading/async decoding retained.
+9) Fallback Unsplash image requests were reduced in width/quality only; live catalog image transformation is unchanged.
+10) No SQL changes are required for V84; keep the already-applied V82 secure SQL.
+
+V85 SUCCESS MODAL FIX — نقل نافذة تأكيد الطلب خارج section ذات stacking context حتى لا يظهر قسم تواصل معنا فوقها، مع رفع z-index وتحديث cache version.

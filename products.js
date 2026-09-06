@@ -1,4 +1,4 @@
-/* فِضّة FIDDA — متجر الزبائن | V41 cart counter final */
+/* فِضّة FIDDA — متجر الزبائن | V81 cart/order fix */
 const DELIVERY_FEE = 5000;
 const CART_KEY = 'fiddaCart';
 

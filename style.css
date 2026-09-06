@@ -660,9 +660,9 @@ img{content-visibility:auto}
 
   /* السلة */
   .cart-layout{gap:14px}
-  .cart-row{grid-template-columns:68px minmax(0,1fr) 82px;padding:13px 0;border-bottom:1px solid #ecece8}
-  .cart-total-box{min-width:0;width:100%;max-width:100%;box-sizing:border-box;align-items:flex-end}
-  .cart-total-box .cart-row-total{direction:ltr;unicode-bidi:isolate;white-space:nowrap;max-width:100%;font-size:12px!important;letter-spacing:-.15px}
+  .cart-row{grid-template-columns:68px minmax(0,1fr) 102px;padding:13px 0;border-bottom:1px solid #ecece8}
+  .cart-total-box{min-width:0;width:100%;max-width:100%;box-sizing:border-box;align-items:flex-end;justify-self:end;overflow:visible}
+  .cart-total-box .cart-row-total{direction:ltr;unicode-bidi:isolate;white-space:nowrap;max-width:none;text-align:right;font-size:12px!important;letter-spacing:-.1px;display:block;overflow:visible}
   .cart-total-box>span{direction:rtl}
   .cart-product-link img{width:68px;height:68px}
   .cart-item-info h3{font-size:10px}
@@ -2202,6 +2202,21 @@ body > .fidda-loader-text{display:none!important;}
 }
 
 
+/* ===== V81: targeted silver touch for the store/cart floating black pill ===== */
+.shop-cart-page .header-pill{
+  background:
+    radial-gradient(ellipse 58% 95% at 14% 0%,rgba(235,235,232,.34) 0%,rgba(205,205,202,.16) 34%,rgba(205,205,202,0) 70%),
+    radial-gradient(ellipse 48% 90% at 88% 100%,rgba(190,190,187,.30) 0%,rgba(160,160,158,.13) 38%,rgba(160,160,158,0) 76%),
+    radial-gradient(ellipse 34% 80% at 54% 18%,rgba(255,255,255,.10) 0%,rgba(255,255,255,0) 72%),
+    linear-gradient(135deg,#111214 0%,#1b1c1e 32%,#343537 66%,#17181a 100%);
+  box-shadow:0 18px 45px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(185,185,182,.16);
+}
+.shop-cart-page .header-pill:after{
+  content:"";position:absolute;inset:1px;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(135deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,0) 28%,rgba(220,220,218,.08) 72%,rgba(255,255,255,0) 100%);
+}
+.shop-cart-page .header-pill>*{position:relative;z-index:1}
+
 /* ===== V78: clean cart layout + stronger product-card prices ===== */
 .product-card .product-bottom strong{font-size:15px!important;font-weight:800;letter-spacing:.15px;line-height:1.2;white-space:nowrap}
 .cart-item-meta{display:flex;align-items:center;flex-wrap:wrap;gap:7px 18px;margin:6px 0 4px}
@@ -2222,13 +2237,13 @@ body > .fidda-loader-text{display:none!important;}
  .cart-item-meta>span{font-size:10px}
  .cart-item-meta b,.cart-total-box>span{font-size:8px}
  .cart-item-unit-price em{font-size:11px}
- .cart-total-box{min-width:82px}
+ .cart-total-box{min-width:102px}
  .cart-total-box .cart-row-total{font-size:12px!important}
 }
 @media(max-width:380px){
  .product-card .product-bottom strong{font-size:11px!important}
  .cart-item-meta{gap:4px 8px}
  .cart-item-meta>span{font-size:9px}
- .cart-total-box{min-width:70px}
+ .cart-total-box{min-width:94px}
  .cart-total-box .cart-row-total{font-size:11px!important}
 }

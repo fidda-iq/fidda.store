@@ -329,6 +329,13 @@ window.addEventListener('online',()=>trackFiddaStoreVisit());
 window.addEventListener('pageshow',()=>trackFiddaStoreVisit());
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')trackFiddaStoreVisit()});
 
+async function dbCreateOrder(customer,items,subtotal,delivery,total){
+  const db=await ensureFiddaSupabase();
+  const {data,error}=await db.rpc('fidda_create_order',{p_customer:customer,p_items:items,p_subtotal:subtotal,p_delivery:delivery,p_total:total});
+  if(error)throw error;
+  return data;
+}
+window.dbCreateOrder=dbCreateOrder;
 window.ensureFiddaSupabase=ensureFiddaSupabase;
 window.fiddaDbInit=fiddaDbInit;
 window.fiddaFetchCatalog=fiddaFetchCatalog;

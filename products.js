@@ -48,7 +48,7 @@ function getProducts(){
 function getCategories(){return window.FIDDA_CATEGORIES||DEFAULT_CATEGORIES}
 function saveProducts(x){return setProductsState((x||[]).map(normalizeProduct))}
 function saveCategories(x){window.FIDDA_CATEGORIES=x||[];return window.FIDDA_CATEGORIES}
-function formatPrice(n){return new Intl.NumberFormat('ar-IQ').format(Number(n)||0)+' د.ع'}
+function formatPrice(n){return new Intl.NumberFormat('en-US').format(Number(n)||0)+' IQD'}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function getCart(){try{const x=JSON.parse(localStorage.getItem(CART_KEY)||'[]');return Array.isArray(x)?x.filter(i=>i&&Number(i.qty)>0):[]}catch{return[]}}
 function saveCart(cart){

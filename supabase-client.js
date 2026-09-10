@@ -295,9 +295,22 @@ function getFiddaVisitorId(){
   }catch(e){return 'v_'+Math.random().toString(36).slice(2)+Date.now()}
 }
 function fiddaVisitWasRecentlySent(){
-  try{return Date.now()-Number(localStorage.getItem(FIDDA_VISIT_LAST_SENT_KEY)||0)<30*60*1000}catch(e){return false}
+  try{
+    const last=String(localStorage.getItem(FIDDA_VISIT_LAST_SENT_KEY)||'');
+    if(!last)return false;
+    const d=new Date();
+    const today=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return last===today;
+  }catch(e){return false}
 }
-function markFiddaVisitSent(){try{localStorage.setItem(FIDDA_VISIT_LAST_SENT_KEY,String(Date.now()));localStorage.removeItem(FIDDA_VISIT_PENDING_KEY)}catch(e){}}
+function markFiddaVisitSent(){
+  try{
+    const d=new Date();
+    const today=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    localStorage.setItem(FIDDA_VISIT_LAST_SENT_KEY,today);
+    localStorage.removeItem(FIDDA_VISIT_PENDING_KEY);
+  }catch(e){}
+}
 function markFiddaVisitPending(){try{localStorage.setItem(FIDDA_VISIT_PENDING_KEY,'1')}catch(e){}}
 async function trackFiddaStoreVisit(force=false){
   if(location.pathname.toLowerCase().includes('/admin'))return null;

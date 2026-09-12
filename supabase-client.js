@@ -109,7 +109,9 @@ function rowToProduct(r){
     customFields:Array.isArray(r?.custom_fields)?r.custom_fields:[],
     featured:r?.featured,
     sizes:Array.isArray(r?.sizes)?r.sizes:[],
-    sort_order:r?.sort_order
+    sort_order:r?.sort_order,
+    category_sort_order:r?.category_sort_order,
+    featured_sort_order:r?.featured_sort_order
   });
 }
 function rowToCategory(r){

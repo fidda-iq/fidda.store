@@ -320,7 +320,7 @@ function syncVisibleStoreAfterDataRefresh(){
   updateCartCount();updateAllCustomerStockUI();
   if(cartChanged&&document.getElementById('cartPage'))renderCart();
   if(document.getElementById('homeCategories'))renderHomeCategories();
-  if(document.getElementById('featuredProducts'))renderProducts(getProducts().filter(p=>p.featured).sort((a,b)=>(Number(a.featured_sort_order)||0)-(Number(b.featured_sort_order)||0)||Number(a.id)-Number(b.id)),'featuredProducts');
+  if(document.getElementById('featuredProducts'))renderProducts(getProducts().filter(p=>p.featured).sort((a,b)=>{const ao=Number(a.featured_sort_order),bo=Number(b.featured_sort_order);const av=Number.isFinite(ao)?ao:Number.isFinite(Number(a.sort_order))?Number(a.sort_order):0;const bv=Number.isFinite(bo)?bo:Number.isFinite(Number(b.sort_order))?Number(b.sort_order):0;return av-bv||Number(a.id)-Number(b.id)}),'featuredProducts');
   if(document.getElementById('allProducts'))applyProductsPageFilters();
   if(document.getElementById('productDetail')){refreshProductDetailDataOnly();renderRelatedProducts(window.__detailProductId); }
   if(document.getElementById('orderSummary'))renderCheckout();
@@ -336,7 +336,7 @@ function renderStoreImmediately(){
   renderProductDetail();
   renderCart();
   renderCheckout();
-  if(document.getElementById('featuredProducts'))renderProducts(getProducts().filter(p=>p.featured).sort((a,b)=>(Number(a.featured_sort_order)||0)-(Number(b.featured_sort_order)||0)||Number(a.id)-Number(b.id)),'featuredProducts');
+  if(document.getElementById('featuredProducts'))renderProducts(getProducts().filter(p=>p.featured).sort((a,b)=>{const ao=Number(a.featured_sort_order),bo=Number(b.featured_sort_order);const av=Number.isFinite(ao)?ao:Number.isFinite(Number(a.sort_order))?Number(a.sort_order):0;const bv=Number.isFinite(bo)?bo:Number.isFinite(Number(b.sort_order))?Number(b.sort_order):0;return av-bv||Number(a.id)-Number(b.id)}),'featuredProducts');
   updateAllCustomerStockUI();
 }
 function scheduleStoreRefresh(){

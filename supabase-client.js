@@ -99,6 +99,7 @@ function rowToProduct(r){
   return normalizeProduct({
     id:Number(r?.id),
     name:r?.name||'',
+    code:r?.product_code||r?.code||'',
     category:r?.category||'',
     price:r?.price,
     desc:r?.description??r?.desc??'',
